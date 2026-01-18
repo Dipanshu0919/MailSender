@@ -1,0 +1,221 @@
+import csv
+import json
+import os
+import random
+import re
+import smtplib
+import threading
+import time
+import webbrowser
+from concurrent.futures import ThreadPoolExecutor
+from email.mime.text import MIMEText
+from email.policy import SMTP
+
+import dns.resolver
+from flask import Flask, jsonify, render_template, request
+
+app = Flask(__name__)
+app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
+
+place_holder_regex = re.compile(r"\$\((\w+)\)\$")
+email_regex = re.compile(r"[A-Za-z0-9._-]+@[A-Za-z0-9._-]+\.[A-Za-z]+")
+SENDER_MAIL = os.environ.get("MAILSENDER_SMTP_MAIL")
+SENDER_MAIL_APP_PASSWORD = os.environ.get("MAILSENDER_SMTP_MAIL_APP_PASSWORD")
+smtp_providers = {
+    "gmail": ("smtp.gmail.com", 465, "google.com"),
+    "yahoo": ("smtp.mail.yahoo.com", 465, "yahoodns.net"),
+    "zoho": ("smtp.zoho.com", 465, "zoho.com"),
+    "office365": ("smtp.office365.com", 587, "outlook.com"),
+}
+
+
+class mailSender:
+    def __init__(self):
+        self.success_mails = 0
+        self.failed_mails = 0
+        self.skipped_mails = 0
+        self.filekeys = None
+        self.filedata = None
+        self.selected_mails = None
+        self.smtp_provider = None
+        self.email_subject = ""
+        self.filename = ""
+
+        self.mail_thread_lock = threading.Lock()
+
+    def find_provider(self):
+        resolver = dns.resolver.Resolver()
+        resolver.nameservers = ["8.8.8.8", "1.1.1.1"]
+        domain = SENDER_MAIL.split("@")[1]
+        answers = resolver.resolve(domain, "MX")
+
+        for r in answers:
+            result = str(r.exchange).lower()
+        for k, v in smtp_providers.items():
+            if v[2] in result:
+                self.smtp_provider = k
+        return self.smtp_provider if self.smtp_provider else None
+
+
+ms_obj = mailSender()
+
+
+@app.route("/")
+def home():
+    MAIL = os.environ.get("MAILSENDER_SMTP_MAIL", None)
+    APP_PASSWORD = os.environ.get("MAILSENDER_SMTP_MAIL_APP_PASSWORD", None)
+    provider = ms_obj.find_provider() if MAIL else None
+    return render_template(
+        "index.html", mail=MAIL, password=APP_PASSWORD, provider=provider
+    )
+
+
+def open_browser():
+    webbrowser.open("http://127.0.0.1:8000")
+
+
+def send_mail():
+    threads = []
+
+    port = smtp_providers[ms_obj.smtp_provider][1]
+    host = smtp_providers[ms_obj.smtp_provider][0]
+
+    with smtplib.SMTP_SSL(host, port) as server:
+        server.login(SENDER_MAIL, SENDER_MAIL_APP_PASSWORD)
+
+        for indexx, mails in enumerate(ms_obj.selected_mails):
+            index = indexx
+            mail = mails
+            # def mail_thread(index, mail):
+            find_placeholders = place_holder_regex.findall(mail[1])
+
+            if find_placeholders:
+                with ms_obj.mail_thread_lock:
+                    ms_obj.selected_mails[index][2] = (
+                        "Skipped: Missing placeholders values - "
+                        + ", ".join(find_placeholders)
+                    )
+                    ms_obj.skipped_mails += 1
+                # return
+                continue
+
+            try:
+                msg = MIMEText(mail[1], "html")
+                msg["Subject"] = ms_obj.email_subject
+                msg["From"] = SENDER_MAIL
+                msg["To"] = mail[0]
+
+                server.sendmail(SENDER_MAIL, mail[0], msg.as_string())
+
+                with ms_obj.mail_thread_lock:
+                    ms_obj.selected_mails[index][2] = "Success"
+                    ms_obj.success_mails += 1
+
+            except Exception as e:
+                with ms_obj.mail_thread_lock:
+                    ms_obj.selected_mails[index][2] = f"Error: {e}"
+                    ms_obj.failed_mails += 1
+            time.sleep(2.5)
+
+        # t = threading.Thread(target=mail_thread, args=(indexx, mails))
+        # threads.append(t)
+        # t.start()
+        # time.sleep(2)
+
+        # for t in threads:
+        #     t.join()
+
+
+@app.route("/file", methods=["POST"])
+def file():
+    uploaded_file = request.files.get("file")
+
+    ms_obj.filename = uploaded_file.filename
+    uploaded_file.save(ms_obj.filename)
+
+    if ms_obj.filename.endswith(".csv"):
+        with open(ms_obj.filename, "r") as f:
+            ms_obj.filedata = list(csv.DictReader(f))
+
+    elif ms_obj.filename.endswith(".json"):
+        with open(ms_obj.filename, "r") as f:
+            ms_obj.filedata = json.load(f)
+
+    ms_obj.filekeys = tuple(ms_obj.filedata[0].keys())
+
+    proper_email = []
+    for row in ms_obj.filedata:
+        for key, value in row.items():
+            if email_regex.search(value):
+                proper_email.append(key)
+        if proper_email:
+            break
+
+    return jsonify(proper_email)
+
+
+@app.route("/showemails", methods=["POST"])
+def showemails():
+    email_column = request.form.get("emailoption")
+    mails = [
+        x[email_column].strip()
+        if (len(email_regex.findall(x[email_column])) == 1)
+        else f"ERROR: {x[email_column]}"
+        for x in ms_obj.filedata
+    ]
+    messages = [x.get("formated_message_mailsender", "") for x in ms_obj.filedata]
+
+    return jsonify({"emails": mails, "allkeys": ms_obj.filekeys, "messages": messages})
+
+
+@app.route("/editmessage", methods=["POST"])
+def editmessage():
+    message = request.form.get("message", "")
+    matches = place_holder_regex.findall(message)
+    for numb, ppls in enumerate(ms_obj.filedata):
+        new_message = message
+        for x in matches:
+            if ppls.get(x):
+                new_message = new_message.replace(f"$({x})$", ppls[x])
+
+            # if new_message.startswith("placeholder_error:"):
+            #     new_message = new_message[len("placeholder_error: ") :].lstrip()
+
+            # if place_holder_regex.findall(new_message):
+            #     new_message = f"placeholder_error: {new_message}"
+        ms_obj.filedata[numb]["formated_message_mailsender"] = new_message
+
+    return "OK"
+
+
+@app.route("/selectemails", methods=["POST"])
+def selectemails():
+    selected_mails = request.form.get("selected_mails")
+    to_json = json.loads(selected_mails)
+    ms_obj.selected_mails = [[mail, msg, "Processing"] for mail, msg in to_json.items()]
+    print(ms_obj.selected_mails)
+    ms_obj.email_subject = request.form.get("subject")
+    with open("saved_data.csv", "w") as f:
+        writer = csv.DictWriter(f, fieldnames=["email", "message"])
+        writer.writeheader()
+        writer.writerows(
+            {"email": email, "message": msg}
+            for email, msg, status in ms_obj.selected_mails
+        )
+    send_mail()
+    return "OK"
+
+
+@app.route("/show_logs")
+def show_logs():
+    return render_template("logs.html")
+
+
+@app.route("/logs_table")
+def logs_table():
+    return render_template("logs_table.html", mails=ms_obj.selected_mails)
+
+
+if __name__ == "__main__":
+    # threading.Timer(1, open_browser).start()
+    app.run(port=8000, debug=True)

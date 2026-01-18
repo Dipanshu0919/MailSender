@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Logs</title>
+        <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    </head>
+    <body>
+        <h2>Mail Logs</h2>
+
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Mail</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody
+                hx-get="/logs_table"
+                hx-trigger="every 1s"
+                hx-swap="innerHTML"
+            >
+                <!-- Jinja-rendered rows will appear here -->
+            </tbody>
+        </table>
+    </body>
+</html>
