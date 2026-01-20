@@ -115,7 +115,7 @@ def send_mail():
                 with ms_obj.mail_thread_lock:
                     ms_obj.selected_mails[index][2] = f"Error: {e}"
                     ms_obj.failed_mails += 1
-            time.sleep(2.5)
+            time.sleep(1)
 
         # t = threading.Thread(target=mail_thread, args=(indexx, mails))
         # threads.append(t)
@@ -208,14 +208,14 @@ def selectemails():
 
 @app.route("/show_logs")
 def show_logs():
-    return render_template("logs.html")
-
-
-@app.route("/logs_table")
-def logs_table():
-    return render_template("logs_table.html", mails=ms_obj.selected_mails)
+    mails = ms_obj.selected_mails
+    if mails:
+        processing = any(status == "Processing" for _, _, status in mails)
+    else:
+        processing = False
+    return render_template("logs.html", mails=mails, processing=processing)
 
 
 if __name__ == "__main__":
     # threading.Timer(1, open_browser).start()
-    app.run(port=8000, debug=True)
+    app.run(port=8026, debug=True)

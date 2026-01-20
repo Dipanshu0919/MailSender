@@ -1,13 +1,27 @@
 <!doctype html>
-<html>
+<html lang="en">
     <head>
-        <title>Logs</title>
-        <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+        <meta charset="UTF-8" />
+        <title>Mail Logs</title>
+
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+            }
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+            th,
+            td {
+                padding: 6px 10px;
+                border: 1px solid #ccc;
+            }
+        </style>
     </head>
     <body>
-        <h2>Mail Logs</h2>
-
-        <table border="1">
+        {% if mails %}
+        <table>
             <thead>
                 <tr>
                     <th>Mail</th>
@@ -15,14 +29,58 @@
                     <th>Status</th>
                 </tr>
             </thead>
-
-            <tbody
-                hx-get="/logs_table"
-                hx-trigger="every 1s"
-                hx-swap="innerHTML"
-            >
-                <!-- Jinja-rendered rows will appear here -->
+            <tbody id="mail-body">
+                {% for mail, message, status in mails %}
+                <tr>
+                    <td>{{ mail }}</td>
+                    <td>{{ message }}</td>
+                    <td>{{ status }}</td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
+
+        {% else %}
+        <h3>No logs found.</h3>
+        {% endif %}
+
+        <script>
+            async function refreshLogs() {
+                try {
+                    const response = await fetch(window.location.href, {
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest",
+                        },
+                    });
+
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, "text/html");
+
+                    const newBody = doc.querySelector("#mail-body");
+                    const currentBody = document.querySelector("#mail-body");
+
+                    if (newBody && currentBody) {
+                        currentBody.innerHTML = newBody.innerHTML;
+                    }
+                } catch (e) {
+                    console.error("Silent refresh failed", e);
+                }
+            }
+
+            // Silent refresh every 1 second
+            let refreshTimer = null;
+
+                {% if mails and processing %}
+                if (!refreshTimer) {
+                    refreshTimer = setInterval(refreshLogs, 1000);
+                }
+                {% else %}
+                if (refreshTimer) {
+                    clearInterval(refreshTimer);
+                    refreshTimer = null;
+                }
+                {% endif %}
+        </script>
     </body>
 </html>
