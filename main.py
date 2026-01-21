@@ -44,16 +44,19 @@ class mailSender:
         self.mail_thread_lock = threading.Lock()
 
     def find_provider(self):
-        resolver = dns.resolver.Resolver()
-        resolver.nameservers = ["8.8.8.8", "1.1.1.1"]
-        domain = SENDER_MAIL.split("@")[1]
-        answers = resolver.resolve(domain, "MX")
+        try:
+            resolver = dns.resolver.Resolver()
+            resolver.nameservers = ["8.8.8.8", "1.1.1.1"]
+            domain = SENDER_MAIL.split("@")[1]
+            answers = resolver.resolve(domain, "MX")
 
-        for r in answers:
-            result = str(r.exchange).lower()
-        for k, v in smtp_providers.items():
-            if v[2] in result:
-                self.smtp_provider = k
+            for r in answers:
+                result = str(r.exchange).lower()
+            for k, v in smtp_providers.items():
+                if v[2] in result:
+                    self.smtp_provider = k
+        except:
+            self.smtp_provider = None
         return self.smtp_provider if self.smtp_provider else None
 
 
@@ -65,6 +68,10 @@ def home():
     MAIL = os.environ.get("MAILSENDER_SMTP_MAIL", None)
     APP_PASSWORD = os.environ.get("MAILSENDER_SMTP_MAIL_APP_PASSWORD", None)
     provider = ms_obj.find_provider() if MAIL else None
+    try:
+        os.mknod("mail_logs.csv")
+    except FileExistsError as e:
+        pass
     return render_template(
         "index.html", mail=MAIL, password=APP_PASSWORD, provider=provider
     )
@@ -87,11 +94,11 @@ def send_mail():
             index = indexx
             mail = mails
             # def mail_thread(index, mail):
-            find_placeholders = place_holder_regex.findall(mail[1])
+            find_placeholders = place_holder_regex.findall(mail[2])
 
             if find_placeholders:
                 with ms_obj.mail_thread_lock:
-                    ms_obj.selected_mails[index][2] = (
+                    ms_obj.selected_mails[index][3] = (
                         "Skipped: Missing placeholders values - "
                         + ", ".join(find_placeholders)
                     )
@@ -100,21 +107,26 @@ def send_mail():
                 continue
 
             try:
-                msg = MIMEText(mail[1], "html")
+                msg = MIMEText(mail[2], "html")
                 msg["Subject"] = ms_obj.email_subject
                 msg["From"] = SENDER_MAIL
-                msg["To"] = mail[0]
+                msg["To"] = mail[1]
 
-                server.sendmail(SENDER_MAIL, mail[0], msg.as_string())
+                server.sendmail(SENDER_MAIL, mail[1], msg.as_string())
 
                 with ms_obj.mail_thread_lock:
-                    ms_obj.selected_mails[index][2] = "Success"
+                    ms_obj.selected_mails[index][3] = "Success"
                     ms_obj.success_mails += 1
 
             except Exception as e:
                 with ms_obj.mail_thread_lock:
-                    ms_obj.selected_mails[index][2] = f"Error: {e}"
+                    ms_obj.selected_mails[index][3] = f"Error: {e}"
                     ms_obj.failed_mails += 1
+
+            with open("mail_logs.csv", "w") as f:
+                writer = csv.writer(f)
+                writer.writerow(["index", "email", "message", "status"])
+                writer.writerows(ms_obj.selected_mails)
             time.sleep(1)
 
         # t = threading.Thread(target=mail_thread, args=(indexx, mails))
@@ -130,7 +142,7 @@ def send_mail():
 def file():
     uploaded_file = request.files.get("file")
 
-    ms_obj.filename = uploaded_file.filename
+    ms_obj.filename = f"mailSender__{uploaded_file.filename}"
     uploaded_file.save(ms_obj.filename)
 
     if ms_obj.filename.endswith(".csv"):
@@ -141,16 +153,15 @@ def file():
         with open(ms_obj.filename, "r") as f:
             ms_obj.filedata = json.load(f)
 
+    os.remove(ms_obj.filename)
     ms_obj.filekeys = tuple(ms_obj.filedata[0].keys())
-
     proper_email = []
-    for row in ms_obj.filedata:
-        for key, value in row.items():
-            if email_regex.search(value):
-                proper_email.append(key)
-        if proper_email:
-            break
-
+    for index, row in enumerate(ms_obj.filedata, start=0):
+        if not proper_email:
+            for key, value in row.items():
+                if email_regex.search(value):
+                    proper_email.append(key)
+        row["index"] = index
     return jsonify(proper_email)
 
 
@@ -192,16 +203,11 @@ def editmessage():
 def selectemails():
     selected_mails = request.form.get("selected_mails")
     to_json = json.loads(selected_mails)
-    ms_obj.selected_mails = [[mail, msg, "Processing"] for mail, msg in to_json.items()]
+    ms_obj.selected_mails = [
+        [msg[0], mail, msg[1], "Processing"] for mail, msg in to_json.items()
+    ]
     print(ms_obj.selected_mails)
     ms_obj.email_subject = request.form.get("subject")
-    with open("saved_data.csv", "w") as f:
-        writer = csv.DictWriter(f, fieldnames=["email", "message"])
-        writer.writeheader()
-        writer.writerows(
-            {"email": email, "message": msg}
-            for email, msg, status in ms_obj.selected_mails
-        )
     send_mail()
     return "OK"
 
@@ -210,8 +216,13 @@ def selectemails():
 def show_logs():
     mails = ms_obj.selected_mails
     if mails:
-        processing = any(status == "Processing" for _, _, status in mails)
+        processing = any(status == "Processing" for _, _, _, status in mails)
     else:
+        with open("mail_logs.csv", "r") as f:
+            reader = csv.DictReader(f)
+            mails = []
+            for x in reader:
+                mails.append([x["index"], x["email"], x["message"], x["status"]])
         processing = False
     return render_template("logs.html", mails=mails, processing=processing)
 

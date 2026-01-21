@@ -2,85 +2,481 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <title>Mail Logs</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>📧 Email Delivery Logs</title>
 
         <style>
+            :root {
+                --bg-primary: #ffffff;
+                --bg-secondary: #f9fafb;
+                --text-primary: #1f2937;
+                --text-secondary: #6b7280;
+                --border-color: #e5e7eb;
+                --header-bg: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+
+                /* Status Colors */
+                --success-bg: #d1fae5;
+                --success-text: #065f46;
+                --success-border: #6ee7b7;
+                --error-bg: #fee2e2;
+                --error-text: #991b1b;
+                --error-border: #fca5a5;
+                --skipped-bg: #fef3c7;
+                --skipped-text: #92400e;
+                --skipped-border: #fde68a;
+                --processing-bg: #dbeafe;
+                --processing-text: #1e40af;
+                --processing-border: #93c5fd;
+
+                --info-bg: #f3f4f6;
+                --info-text: #374151;
+                --shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+                --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            html[data-theme="dark"] {
+                --bg-primary: #111827;
+                --bg-secondary: #1f2937;
+                --text-primary: #f3f4f6;
+                --text-secondary: #d1d5db;
+                --border-color: #374151;
+                --success-bg: #064e3b;
+                --success-text: #d1fae5;
+                --success-border: #10b981;
+                --error-bg: #7f1d1d;
+                --error-text: #fee2e2;
+                --error-border: #ef4444;
+                --skipped-bg: #78350f;
+                --skipped-text: #fef3c7;
+                --skipped-border: #fbbf24;
+                --processing-bg: #1e3a8a;
+                --processing-text: #bfdbfe;
+                --processing-border: #60a5fa;
+                --info-bg: #374151;
+                --info-text: #e5e7eb;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
             body {
-                font-family: Arial, sans-serif;
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    "Helvetica Neue", Arial, sans-serif;
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                min-height: 100vh;
+                padding: 20px;
             }
-            table {
-                border-collapse: collapse;
+
+            .logs-container {
+                max-width: 1400px;
+                margin: 0 auto;
+                box-shadow: var(--shadow-lg);
+                border-radius: 8px;
+                overflow: hidden; /* Prevents overflow */
+            }
+
+            /* --- Header --- */
+            .logs-header {
+                background: var(--header-bg);
+                color: white;
+                padding: 24px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .logs-header h1 {
+                font-size: 24px;
+                font-weight: 700;
+                margin-bottom: 4px;
+            }
+            .logs-header-subtitle {
+                font-size: 14px;
+                opacity: 0.9;
+            }
+
+            .status-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 12px;
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 20px;
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            /* --- Table Layout --- */
+            .table-wrapper {
                 width: 100%;
+                overflow-x: auto; /* Handles horizontal scroll if needed */
+                background: var(--bg-primary);
             }
-            th,
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 14px;
+                table-layout: fixed; /* Fixes column widths to prevent jumping */
+            }
+
+            thead {
+                background: var(--bg-secondary);
+                border-bottom: 2px solid var(--border-color);
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            th {
+                padding: 16px;
+                text-align: left;
+                font-weight: 700;
+                color: var(--text-primary);
+                text-transform: uppercase;
+                font-size: 12px;
+                letter-spacing: 0.5px;
+                white-space: nowrap;
+            }
+
+            /* Define Column Widths for Desktop */
+            th:nth-child(1) {
+                width: 60px;
+            } /* Index */
+            th:nth-child(2) {
+                width: 30%;
+            } /* Email */
+            th:nth-child(3) {
+                width: 45%;
+            } /* Message */
+            th:nth-child(4) {
+                width: 150px;
+            } /* Status */
+
+            tbody tr {
+                border-bottom: 1px solid var(--border-color);
+                background: var(--bg-primary);
+                transition: background 0.2s;
+            }
+
+            tbody tr:hover {
+                background: var(--bg-secondary);
+            }
+
             td {
-                padding: 6px 10px;
-                border: 1px solid #ccc;
+                padding: 14px 16px;
+                color: var(--text-secondary);
+                vertical-align: top;
+                word-wrap: break-word; /* Prevents overlap */
+            }
+
+            .email-cell {
+                font-family: "Courier New", monospace;
+                font-weight: 500;
+                color: var(--text-primary);
+                word-break: break-all; /* Ensures long emails wrap */
+            }
+
+            .message-cell {
+                max-height: 80px;
+                overflow-y: auto;
+                font-size: 13px;
+                line-height: 1.4;
+                padding-right: 5px;
+            }
+
+            /* --- Status Cells --- */
+            .status-cell {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 4px 10px;
+                border-radius: 4px;
+                font-weight: 700;
+                font-size: 11px;
+                text-transform: uppercase;
+                border: 1px solid;
+            }
+
+            .status-success {
+                background: var(--success-bg);
+                color: var(--success-text);
+                border-color: var(--success-border);
+            }
+            .status-error {
+                background: var(--error-bg);
+                color: var(--error-text);
+                border-color: var(--error-border);
+            }
+            .status-skipped {
+                background: var(--skipped-bg);
+                color: var(--skipped-text);
+                border-color: var(--skipped-border);
+            }
+            .status-processing {
+                background: var(--processing-bg);
+                color: var(--processing-text);
+                border-color: var(--processing-border);
+            }
+
+            /* --- Statistics Area --- */
+            .stats-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 15px;
+                padding: 20px;
+                background: var(--bg-secondary);
+                border-top: 1px solid var(--border-color);
+            }
+
+            .stat-item {
+                background: var(--bg-primary);
+                padding: 15px;
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                box-shadow: var(--shadow);
+            }
+
+            .stat-value {
+                font-size: 20px;
+                font-weight: 700;
+                color: var(--text-primary);
+            }
+            .stat-label {
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                color: var(--text-secondary);
+            }
+
+            .no-logs-message {
+                padding: 50px;
+                text-align: center;
+                color: var(--text-muted);
+            }
+
+            /* --- Responsive: Mobile Card View --- */
+            @media (max-width: 768px) {
+                /* Hide Table Header on Mobile */
+                thead {
+                    display: none;
+                }
+
+                /* Make Rows behave like Blocks (Cards) */
+                tbody,
+                tr,
+                td {
+                    display: block;
+                    width: 100%;
+                }
+
+                tr {
+                    margin-bottom: 15px;
+                    border: 1px solid var(--border-color);
+                    border-radius: 8px;
+                    box-shadow: var(--shadow);
+                    padding: 10px;
+                }
+
+                td {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    text-align: right;
+                    padding: 10px 5px;
+                    border-bottom: 1px solid var(--bg-secondary);
+                }
+
+                td:last-child {
+                    border-bottom: none;
+                }
+
+                /* Add Labels using CSS based on data-label attribute */
+                td::before {
+                    content: attr(data-label);
+                    float: left;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    font-size: 11px;
+                    color: var(--text-muted);
+                    margin-right: 10px;
+                }
+
+                .email-cell {
+                    font-size: 14px;
+                    text-align: right;
+                }
+                .message-cell {
+                    text-align: left;
+                    margin-top: 5px;
+                    max-height: none;
+                }
+
+                /* Ensure message cell stacks properly on mobile */
+                td[data-label="Message"] {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    text-align: left;
+                }
             }
         </style>
     </head>
     <body>
-        {% if mails %}
-        <table>
-            <thead>
-                <tr>
-                    <th>Mail</th>
-                    <th>Message</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="mail-body">
-                {% for mail, message, status in mails %}
-                <tr>
-                    <td>{{ mail }}</td>
-                    <td>{{ message }}</td>
-                    <td>{{ status }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="logs-container">
+            <div class="logs-header">
+                <div>
+                    <h1>📧 Email Delivery Logs</h1>
+                    <div class="logs-header-subtitle">
+                        Real-time delivery status
+                    </div>
+                </div>
+                <div class="status-badge">
+                    <span id="refreshStatus">Live</span>
+                </div>
+            </div>
 
-        {% else %}
-        <h3>No logs found.</h3>
-        {% endif %}
+            <div class="logs-content">
+                {% if mails %}
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Email Address</th>
+                                <th>Message / Details</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mail-body">
+                            {% for index, mail, message, status in mails %}
+                            <tr
+                                class="status-{{ status|lower|replace(' ', '-') }}"
+                            >
+                                <td data-label="#">{{ index }}</td>
+                                <td data-label="Email">
+                                    <span class="email-cell">{{ mail }}</span>
+                                </td>
+                                <td data-label="Message">
+                                    <div class="message-cell">
+                                        {{ message | safe }}
+                                    </div>
+                                </td>
+                                <td data-label="Status">
+                                    <span
+                                        class="status-cell status-{{ status|lower|replace(' ', '-') }}"
+                                    >
+                                        {{ status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <span>📨</span>
+                        <div>
+                            <div class="stat-label">Total</div>
+                            <div class="stat-value" id="totalCount">
+                                {{ mails|length }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span>✅</span>
+                        <div>
+                            <div class="stat-label">Success</div>
+                            <div class="stat-value" id="successCount">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span>❌</span>
+                        <div>
+                            <div class="stat-label">Failed</div>
+                            <div class="stat-value" id="errorCount">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span>⏳</span>
+                        <div>
+                            <div class="stat-label">Pending</div>
+                            <div class="stat-value" id="processingCount">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% else %}
+                <div class="no-logs-message">
+                    <h3>📭 No logs found</h3>
+                    <p>There are no email delivery logs to display yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
 
         <script>
-            async function refreshLogs() {
-                try {
-                    const response = await fetch(window.location.href, {
-                        headers: {
-                            "X-Requested-With": "XMLHttpRequest",
-                        },
-                    });
+            // Theme Init
+            function initTheme() {
+                const parentTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', parentTheme);
+            }
+            initTheme();
+            window.addEventListener('storage', initTheme);
 
-                    const html = await response.text();
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, "text/html");
+            // Stats Logic
+            function updateStats() {
+                const rows = document.querySelectorAll('#mail-body tr');
+                let counts = { success: 0, error: 0, skipped: 0, processing: 0 };
 
-                    const newBody = doc.querySelector("#mail-body");
-                    const currentBody = document.querySelector("#mail-body");
+                rows.forEach(row => {
+                    const statusText = row.querySelector('.status-cell').textContent.toLowerCase().trim();
+                    if (statusText.includes('success') || statusText.includes('sent')) counts.success++;
+                    else if (statusText.includes('error') || statusText.includes('fail')) counts.error++;
+                    else if (statusText.includes('skip')) counts.skipped++;
+                    else counts.processing++;
+                });
 
-                    if (newBody && currentBody) {
-                        currentBody.innerHTML = newBody.innerHTML;
-                    }
-                } catch (e) {
-                    console.error("Silent refresh failed", e);
-                }
+                document.getElementById('totalCount').textContent = rows.length;
+                document.getElementById('successCount').textContent = counts.success;
+                document.getElementById('errorCount').textContent = counts.error;
+                document.getElementById('processingCount').textContent = counts.processing;
             }
 
-            // Silent refresh every 1 second
-            let refreshTimer = null;
+            // Simple Polling Logic
+            async function refreshLogs() {
+                try {
+                    const res = await fetch(window.location.href, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+                    const text = await res.text();
+                    const doc = new DOMParser().parseFromString(text, "text/html");
+                    const newBody = doc.querySelector("#mail-body");
+                    if (newBody) {
+                        document.querySelector("#mail-body").innerHTML = newBody.innerHTML;
+                        updateStats();
+                    }
+                } catch(e) { console.error(e); }
+            }
 
-                {% if mails and processing %}
-                if (!refreshTimer) {
-                    refreshTimer = setInterval(refreshLogs, 1000);
-                }
-                {% else %}
-                if (refreshTimer) {
-                    clearInterval(refreshTimer);
-                    refreshTimer = null;
-                }
-                {% endif %}
+            updateStats();
+
+            // Only auto-refresh if there are pending items
+            {% if mails and processing %}
+                setInterval(refreshLogs, 2000);
+            {% else %}
+                document.getElementById('refreshStatus').textContent = 'Complete';
+            {% endif %}
         </script>
     </body>
 </html>
