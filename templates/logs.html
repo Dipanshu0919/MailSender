@@ -353,10 +353,9 @@
             </div>
 
             <div class="logs-content">
-                {% if mails %}
+                {% if mails %} <br>
                 <form action="/download/mail_logs.csv" method="get" style="display:inline;">
                     <button type="submit" class="action-btn unsent"> ⬇ Download CSV </button>
-                <br>
                     {% if processing %}
                         {% if isPaused %}
                             <button class="action-btn resume" data-action="resume">RESUME</button>
