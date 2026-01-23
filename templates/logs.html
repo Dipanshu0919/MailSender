@@ -273,6 +273,11 @@
                 color: var(--text-muted);
             }
 
+            html.reloading,
+            html.reloading body {
+                background: var(--bg-primary); opacity: 1; }
+
+
             /* --- Responsive: Mobile Card View --- */
             @media (max-width: 768px) {
                 /* Hide Table Header on Mobile */
@@ -417,21 +422,28 @@
                         <span>✅</span>
                         <div>
                             <div class="stat-label">Success</div>
-                            <div class="stat-value" id="successCount">0</div>
+                            <div class="stat-value" id="successCount">{{ totalSuccess }}</div>
                         </div>
                     </div>
                     <div class="stat-item">
                         <span>❌</span>
                         <div>
                             <div class="stat-label">Failed</div>
-                            <div class="stat-value" id="errorCount">0</div>
+                            <div class="stat-value" id="errorCount">{{ totalError }}</div>
                         </div>
                     </div>
                     <div class="stat-item">
                         <span>⏳</span>
                         <div>
                             <div class="stat-label">Pending</div>
-                            <div class="stat-value" id="processingCount">0</div>
+                            <div class="stat-value" id="processingCount">{{ totalProcessing }}</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <span>⚠️</span>
+                        <div>
+                            <div class="stat-label">Skipped</div>
+                            <div class="stat-value" id="processingCount">{{ totalSkipped }}</div>
                         </div>
                     </div>
                 </div>
@@ -446,6 +458,12 @@
         </div>
 
         <script>
+        // Prevent flash on reload
+            document.documentElement.classList.add("reloading");
+            window.addEventListener("load", () => {
+                document.documentElement.classList.remove("reloading");
+            });
+
             // Theme Init
             function initTheme() {
                 const parentTheme = localStorage.getItem('theme') || 'light';
@@ -454,40 +472,35 @@
             initTheme();
             window.addEventListener('storage', initTheme);
 
-            // Stats Logic
-            function updateStats() {
-                const rows = document.querySelectorAll('#mail-body tr');
-                let counts = { success: 0, error: 0, skipped: 0, processing: 0 };
+            // async function refreshLogs() {
+            //     document.documentElement.classList.add("reloading");
 
-                rows.forEach(row => {
-                    const statusText = row.querySelector('.status-cell').textContent.toLowerCase().trim();
-                    if (statusText.includes('success') || statusText.includes('sent')) counts.success++;
-                    else if (statusText.includes('error') || statusText.includes('fail')) counts.error++;
-                    else if (statusText.includes('skip')) counts.skipped++;
-                    else counts.processing++;
-                });
+            //     requestAnimationFrame(() => {
+            //         location.replace(location.href);
+            //     });
+            // }
 
-                document.getElementById('totalCount').textContent = rows.length;
-                document.getElementById('successCount').textContent = counts.success;
-                document.getElementById('errorCount').textContent = counts.error;
-                document.getElementById('processingCount').textContent = counts.processing;
-            }
-
-            // Simple Polling Logic
             async function refreshLogs() {
                 try {
-                    const res = await fetch(window.location.href, { headers: { "X-Requested-With": "XMLHttpRequest" } });
-                    const text = await res.text();
-                    const doc = new DOMParser().parseFromString(text, "text/html");
-                    const newBody = doc.querySelector("#mail-body");
-                    if (newBody) {
-                        document.querySelector("#mail-body").innerHTML = newBody.innerHTML;
-                        updateStats();
-                    }
-                } catch(e) { console.error(e); }
-            }
+                    const res = await fetch(location.href, {
+                        headers: {
+                            "X-Requested-With": "fetch"
+                        }
+                    });
 
-            updateStats();
+                    const html = await res.text();
+
+                    // Parse new document
+                    const parser = new DOMParser();
+                    const newDoc = parser.parseFromString(html, "text/html");
+
+                    // Replace <html> entirely
+                    document.documentElement.replaceWith(newDoc.documentElement);
+
+                } catch (err) {
+                    console.error("Full page replace failed:", err);
+                }
+            }
 
             // Only auto-refresh if there are pending items
             {% if mails and processing %}

@@ -80,7 +80,7 @@ def home():
 
 
 def open_browser():
-    webbrowser.open("http://127.0.0.1:8000")
+    webbrowser.open("http://127.0.0.1:8026")
 
 
 def send_mail():
@@ -221,6 +221,10 @@ def selectemails():
 @app.route("/show_logs")
 def show_logs():
     mails = ms_obj.selected_mails
+    totalSuccess = 0
+    totalSkipped = 0
+    totalProcessing = 0
+    totalError = 0
     if mails:
         processing = any(status == "Processing" for _, _, _, status in mails)
     else:
@@ -233,7 +237,19 @@ def show_logs():
                 if not processing:
                     processing = True if x["status"] == "Processing" else False
     isPaused = ms_obj.pause_request
-    return render_template("logs.html", mails=mails, processing=processing, isPaused=isPaused)
+    if len(mails[0]) == 4:
+        for _, _, _, status in mails:
+            if status == "Processing":
+                totalProcessing += 1
+            elif status.startswith("Skipped"):
+                totalSkipped += 1
+            elif status.startswith("Error"):
+                totalError += 1
+            elif status == "Success":
+                totalSuccess += 1
+    return render_template("logs.html", mails=mails, processing=processing, isPaused=isPaused,
+        totalError=totalError, totalProcessing=totalProcessing, totalSkipped=totalSkipped, totalSuccess=totalSuccess
+    )
 
 
 @app.route("/mail_control", methods=["POST"])
