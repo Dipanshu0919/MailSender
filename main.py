@@ -10,6 +10,9 @@ import webbrowser
 from concurrent.futures import ThreadPoolExecutor
 from email.mime.text import MIMEText
 from email.policy import SMTP
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import dns.resolver
 from flask import Flask, jsonify, render_template, request, send_file
@@ -209,10 +212,11 @@ def editmessage():
 def selectemails():
     selected_mails = request.form.get("selected_mails")
     to_json = json.loads(selected_mails)
-    ms_obj.selected_mails = [
-        [msg[0], mail, msg[1], "Processing"] for mail, msg in to_json.items()
-    ]
-    print(ms_obj.selected_mails)
+    ms_obj.selected_mails = []
+    for fields in to_json:
+        email = fields["email"]
+        data = fields["data"]
+        ms_obj.selected_mails.append([data[0], email, data[1], "Processing"])
     ms_obj.email_subject = request.form.get("subject")
     send_mail()
     return "OK"
@@ -237,16 +241,16 @@ def show_logs():
                 if not processing:
                     processing = True if x["status"] == "Processing" else False
     isPaused = ms_obj.pause_request
-    if len(mails[0]) == 4:
-        for _, _, _, status in mails:
-            if status == "Processing":
-                totalProcessing += 1
-            elif status.startswith("Skipped"):
-                totalSkipped += 1
-            elif status.startswith("Error"):
-                totalError += 1
-            elif status == "Success":
-                totalSuccess += 1
+    # if len(mails[0]) == 3:
+    #     for _, _, _, status in mails:
+    #         if status == "Processing":
+    #             totalProcessing += 1
+    #         elif status.startswith("Skipped"):
+    #             totalSkipped += 1
+    #         elif status.startswith("Error"):
+    #             totalError += 1
+    #         elif status == "Success":
+    #             totalSuccess += 1
     return render_template("logs.html", mails=mails, processing=processing, isPaused=isPaused,
         totalError=totalError, totalProcessing=totalProcessing, totalSkipped=totalSkipped, totalSuccess=totalSuccess
     )
