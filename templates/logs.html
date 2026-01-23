@@ -1,408 +1,159 @@
+<!-- Pause / Resume options disabled for now
+Resume for previous mails avaiable
+-->
+
 <!doctype html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>📧 Email Delivery Logs</title>
-
+        <title>Email Delivery Logs</title>
         <style>
-            :root {
-                --bg-primary: #ffffff;
-                --bg-secondary: #f9fafb;
-                --text-primary: #1f2937;
-                --text-secondary: #6b7280;
-                --border-color: #e5e7eb;
-                --header-bg: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-
-                /* Status Colors */
-                --success-bg: #d1fae5;
-                --success-text: #065f46;
-                --success-border: #6ee7b7;
-                --error-bg: #fee2e2;
-                --error-text: #991b1b;
-                --error-border: #fca5a5;
-                --skipped-bg: #fef3c7;
-                --skipped-text: #92400e;
-                --skipped-border: #fde68a;
-                --processing-bg: #dbeafe;
-                --processing-text: #1e40af;
-                --processing-border: #93c5fd;
-
-                --info-bg: #f3f4f6;
-                --info-text: #374151;
-                --shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-                --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-            }
-
-            html[data-theme="dark"] {
-                --bg-primary: #111827;
-                --bg-secondary: #1f2937;
-                --text-primary: #f3f4f6;
-                --text-secondary: #d1d5db;
-                --border-color: #374151;
-                --success-bg: #064e3b;
-                --success-text: #d1fae5;
-                --success-border: #10b981;
-                --error-bg: #7f1d1d;
-                --error-text: #fee2e2;
-                --error-border: #ef4444;
-                --skipped-bg: #78350f;
-                --skipped-text: #fef3c7;
-                --skipped-border: #fbbf24;
-                --processing-bg: #1e3a8a;
-                --processing-text: #bfdbfe;
-                --processing-border: #60a5fa;
-                --info-bg: #374151;
-                --info-text: #e5e7eb;
-            }
-
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
-            body {
-                font-family:
-                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                    "Helvetica Neue", Arial, sans-serif;
-                background: var(--bg-primary);
-                color: var(--text-primary);
-                min-height: 100vh;
-                padding: 20px;
-            }
-
-            .action-btn { background: linear-gradient(135deg,#2563eb,#1e40af); color:#fff; border:1px solid rgba(255,255,255,.2); padding:10px 18px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:var(--shadow); transition:all .2s ease; }
+            :root { --bg-primary: #ffffff; --bg-secondary: #f9fafb; --text-primary: #1f2937; --text-secondary: #6b7280; --border-color: #e5e7eb; --header-bg: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); --success-bg: #d1fae5; --success-text: #065f46; --success-border: #6ee7b7; --error-bg: #fee2e2; --error-text: #991b1b; --error-border: #fca5a5; --skipped-bg: #fef3c7; --skipped-text: #92400e; --skipped-border: #fde68a; --processing-bg: #dbeafe; --processing-text: #1e40af; --processing-border: #93c5fd; --info-bg: #f3f4f6; --info-text: #374151; --shadow: 0 2px 8px rgba(0, 0, 0, 0.05); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1); }
+            html[data-theme="dark"] { --bg-primary: #0f172a; --bg-secondary: #1e293b; --text-primary: #f8fafc; --text-secondary: #94a3b8; --border-color: #334155; --header-bg: #1e293b; --success-bg: rgba(6, 95, 70, 0.5); --success-text: #6ee7b7; --success-border: #065f46; --error-bg: rgba(153, 27, 27, 0.5); --error-text: #fca5a5; --error-border: #7f1d1d; --skipped-bg: rgba(146, 64, 14, 0.5); --skipped-text: #fcd34d; --skipped-border: #78350f; --processing-bg: rgba(30, 58, 138, 0.5); --processing-text: #93c5fd; --processing-border: #1e40af; --info-bg: #334155; --info-text: #e2e8f0; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding: 20px; }
+            .icon { width: 1.2em; height: 1.2em; vertical-align: middle; margin-right: 6px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: inline-block; position: relative; top: -1px; }
+            .action-btn { background: linear-gradient(135deg,#2563eb,#1e40af); color:#fff; border:1px solid rgba(255,255,255,.2); padding:10px 18px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:var(--shadow); transition:all .2s ease; display: inline-flex; align-items: center; gap: 6px; }
             .action-btn:hover { transform:translateY(-1px); box-shadow:var(--shadow-lg); }
             .action-btn:active { transform:scale(.97); }
             .action-btn.pause { background:linear-gradient(135deg,#dc2626,#991b1b); }
             .action-btn.resume { background:linear-gradient(135deg,#16a34a,#065f46); }
-            .action-btn.unsent { background:linear-gradient(135deg,#ca8a04,#92400e); }
-
-            .logs-container {
-                max-width: 1400px;
-                margin: 0 auto;
-                box-shadow: var(--shadow-lg);
-                border-radius: 8px;
-                overflow: hidden; /* Prevents overflow */
-            }
-
-            /* --- Header --- */
-            .logs-header {
-                background: var(--header-bg);
-                color: white;
-                padding: 24px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                flex-wrap: wrap;
-                gap: 15px;
-            }
-
-            .logs-header h1 {
-                font-size: 24px;
-                font-weight: 700;
-                margin-bottom: 4px;
-            }
-            .logs-header-subtitle {
-                font-size: 14px;
-                opacity: 0.9;
-            }
-
-            .status-badge {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                padding: 6px 12px;
-                background: rgba(255, 255, 255, 0.2);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 20px;
-                font-size: 13px;
-                font-weight: 600;
-            }
-
-            /* --- Table Layout --- */
-            .table-wrapper {
-                width: 100%;
-                overflow-x: auto; /* Handles horizontal scroll if needed */
-                background: var(--bg-primary);
-            }
-
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 14px;
-                table-layout: fixed; /* Fixes column widths to prevent jumping */
-            }
-
-            thead {
-                background: var(--bg-secondary);
-                border-bottom: 2px solid var(--border-color);
-                position: sticky;
-                top: 0;
-                z-index: 10;
-            }
-
-            th {
-                padding: 16px;
-                text-align: left;
-                font-weight: 700;
-                color: var(--text-primary);
-                text-transform: uppercase;
-                font-size: 12px;
-                letter-spacing: 0.5px;
-                white-space: nowrap;
-            }
-
-            /* Define Column Widths for Desktop */
-            th:nth-child(1) {
-                width: 60px;
-            } /* Index */
-            th:nth-child(2) {
-                width: 30%;
-            } /* Email */
-            th:nth-child(3) {
-                width: 45%;
-            } /* Message */
-            th:nth-child(4) {
-                width: 150px;
-            } /* Status */
-
-            tbody tr {
-                border-bottom: 1px solid var(--border-color);
-                background: var(--bg-primary);
-                transition: background 0.2s;
-            }
-
-            tbody tr:hover {
-                background: var(--bg-secondary);
-            }
-
-            td {
-                padding: 14px 16px;
-                color: var(--text-secondary);
-                vertical-align: top;
-                word-wrap: break-word; /* Prevents overlap */
-            }
-
-            .email-cell {
-                font-family: "Courier New", monospace;
-                font-weight: 500;
-                color: var(--text-primary);
-                word-break: break-all; /* Ensures long emails wrap */
-            }
-
-            .message-cell {
-                max-height: 80px;
-                overflow-y: auto;
-                font-size: 13px;
-                line-height: 1.4;
-                padding-right: 5px;
-            }
-
-            /* --- Status Cells --- */
-            .status-cell {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                padding: 4px 10px;
-                border-radius: 4px;
-                font-weight: 700;
-                font-size: 11px;
-                text-transform: uppercase;
-                border: 1px solid;
-            }
-
-            .status-success {
-                background: var(--success-bg);
-                color: var(--success-text);
-                border-color: var(--success-border);
-            }
-            .status-error {
-                background: var(--error-bg);
-                color: var(--error-text);
-                border-color: var(--error-border);
-            }
-            .status-skipped {
-                background: var(--skipped-bg);
-                color: var(--skipped-text);
-                border-color: var(--skipped-border);
-            }
-            .status-processing {
-                background: var(--processing-bg);
-                color: var(--processing-text);
-                border-color: var(--processing-border);
-            }
-
-            /* --- Statistics Area --- */
-            .stats-container {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 15px;
-                padding: 20px;
-                background: var(--bg-secondary);
-                border-top: 1px solid var(--border-color);
-            }
-
-            .stat-item {
-                background: var(--bg-primary);
-                padding: 15px;
-                border-radius: 8px;
-                border: 1px solid var(--border-color);
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                box-shadow: var(--shadow);
-            }
-
-            .stat-value {
-                font-size: 20px;
-                font-weight: 700;
-                color: var(--text-primary);
-            }
-            .stat-label {
-                font-size: 11px;
-                font-weight: 600;
-                text-transform: uppercase;
-                color: var(--text-secondary);
-            }
-
-            .no-logs-message {
-                padding: 50px;
-                text-align: center;
-                color: var(--text-muted);
-            }
-
-            html.reloading,
-            html.reloading body {
-                background: var(--bg-primary); opacity: 1; }
-
-
-            /* --- Responsive: Mobile Card View --- */
-            @media (max-width: 768px) {
-                /* Hide Table Header on Mobile */
-                thead {
-                    display: none;
-                }
-
-                /* Make Rows behave like Blocks (Cards) */
-                tbody,
-                tr,
-                td {
-                    display: block;
-                    width: 100%;
-                }
-
-                tr {
-                    margin-bottom: 15px;
-                    border: 1px solid var(--border-color);
-                    border-radius: 8px;
-                    box-shadow: var(--shadow);
-                    padding: 10px;
-                }
-
-                td {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    text-align: right;
-                    padding: 10px 5px;
-                    border-bottom: 1px solid var(--bg-secondary);
-                }
-
-                td:last-child {
-                    border-bottom: none;
-                }
-
-                /* Add Labels using CSS based on data-label attribute */
-                td::before {
-                    content: attr(data-label);
-                    float: left;
-                    font-weight: 700;
-                    text-transform: uppercase;
-                    font-size: 11px;
-                    color: var(--text-muted);
-                    margin-right: 10px;
-                }
-
-                .email-cell {
-                    font-size: 14px;
-                    text-align: right;
-                }
-                .message-cell {
-                    text-align: left;
-                    margin-top: 5px;
-                    max-height: none;
-                }
-
-                /* Ensure message cell stacks properly on mobile */
-                td[data-label="Message"] {
-                    flex-direction: column;
-                    align-items: flex-start;
-                    text-align: left;
-                }
-            }
+            .action-btn.unsent { background:linear-gradient(135deg,#ca8a04,#92400e); margin-right: 10px; }
+            .filter-container { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; padding: 10px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color); }
+            .filter-btn { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+            .filter-btn:hover { background: var(--bg-secondary); border-color: var(--text-secondary); }
+            .filter-btn svg { width: 16px; height: 16px; stroke-width: 2; }
+            .logs-container { max-width: 100wh; margin: 0 auto; box-shadow: var(--shadow-lg); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
+            .logs-header { background: var(--header-bg); color: white; padding: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid var(--border-color); }
+            .logs-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; }
+            .logs-header-subtitle { font-size: 14px; opacity: 0.9; display: flex; align-items: center; color: rgba(255,255,255,0.8); }
+            .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; font-size: 13px; font-weight: 600; backdrop-filter: blur(4px); }
+            .table-wrapper { width: 100%; overflow-x: auto; background: var(--bg-primary); margin-top: 15px; border: 1px solid var(--border-color); border-radius: 6px; }
+            table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+            thead { background: var(--bg-secondary); border-bottom: 2px solid var(--border-color); position: sticky; top: 0; z-index: 10; }
+            th { padding: 16px; text-align: left; font-weight: 700; color: var(--text-primary); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; white-space: nowrap; display: table-cell; }
+            th svg { width: 14px; height: 14px; vertical-align: middle; margin-right: 6px; opacity: 0.7; position: relative; top: -1px; }
+            th:nth-child(1) { width: 80px; }
+            th:nth-child(2) { width: 30%; }
+            th:nth-child(3) { width: 45%; }
+            th:nth-child(4) { width: 150px; }
+            tbody tr { border-bottom: 1px solid var(--border-color); background: var(--bg-primary); transition: background 0.2s; }
+            tbody tr:hover { background: var(--bg-secondary); }
+            td { padding: 14px 16px; color: var(--text-secondary); vertical-align: top; word-wrap: break-word; }
+            .email-cell { font-family: "Courier New", monospace; font-weight: 500; color: var(--text-primary); word-break: break-all; display: flex; align-items: center; }
+            .message-cell { max-height: 80px; overflow-y: auto; font-size: 13px; line-height: 1.4; padding-right: 5px; color: var(--text-secondary); }
+            .status-cell { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; text-transform: uppercase; border: 1px solid; }
+            .status-success { background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
+            .status-error { background: var(--error-bg); color: var(--error-text); border-color: var(--error-border); }
+            .status-skipped { background: var(--skipped-bg); color: var(--skipped-text); border-color: var(--skipped-border); }
+            .status-processing { background: var(--processing-bg); color: var(--processing-text); border-color: var(--processing-border); }
+            .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; padding: 20px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); }
+            .stat-item { background: var(--bg-primary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); transition: transform 0.2s; }
+            .stat-item:hover { transform: translateY(-2px); }
+            .stat-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); color: var(--text-primary); flex-shrink: 0; }
+            .stat-value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+            .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
+            .no-logs-message { padding: 50px; text-align: center; color: var(--text-secondary); }
+            html.reloading, html.reloading body { background: var(--bg-primary); opacity: 1; }
+            @media (max-width: 768px) { thead { display: none; } tbody, tr, td { display: block; width: 100%; } tr { margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow); padding: 10px; } td { display: flex; justify-content: space-between; align-items: center; text-align: right; padding: 10px 5px; border-bottom: 1px solid var(--bg-secondary); } td:last-child { border-bottom: none; } td::before { content: attr(data-label); float: left; font-weight: 700; text-transform: uppercase; font-size: 11px; color: var(--text-secondary); margin-right: 10px; display: flex; align-items: center; } .email-cell { font-size: 14px; text-align: right; justify-content: flex-end; } .message-cell { text-align: left; margin-top: 5px; max-height: none; } td[data-label="Message"] { flex-direction: column; align-items: flex-start; text-align: left; } .filter-container { justify-content: center; } }
         </style>
     </head>
     <body>
         <div class="logs-container">
             <div class="logs-header">
                 <div>
+                    <h1>
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        Email Delivery Logs
+                    </h1>
                     <div class="logs-header-subtitle">
+                        <svg class="icon" style="width: 1em; height: 1em;" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                         Real-time delivery status
                     </div>
                 </div>
                 <div class="status-badge">
+                    <svg class="icon" style="fill: #10b981; stroke: none; margin-right: 0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle></svg>
                     <span id="refreshStatus">Live</span>
                 </div>
             </div>
 
             <div class="logs-content">
-                {% if mails %} <br>
-                <form action="/download/mail_logs.csv" method="get" style="display:inline;">
-                    <button type="submit" class="action-btn unsent"> ⬇ Download CSV </button>
-                    {% if processing %}
-                        {% if isPaused %}
-                            <button class="action-btn resume" data-action="resume">RESUME</button>
-                        {% else %}
-                            <button class="action-btn pause" data-action="pause">PAUSE</button>
-                        {% endif %}
+                {% if mails %}
+                <br>
 
-                    {% elif processing and not isPaused %}
-                    <button class="action-btn resume" data-action="resume">RESUME</button>
+                <!-- Filter Buttons Section -->
+                <div class="filter-container">
+                    <button class="filter-btn" onclick="filterLogs('all')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        Show All
+                    </button>
+                    <button class="filter-btn" onclick="filterLogs('error')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        Show Errors
+                    </button>
+                    <button class="filter-btn" onclick="filterLogs('processing')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                        Show Processing
+                    </button>
+                    <button class="filter-btn" onclick="filterLogs('skipped')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        Show Skipped
+                    </button>
+                    <button class="filter-btn" onclick="filterLogs('success')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        Show Success
+                    </button>
+
+                    <form action="/download/mail_logs.csv" method="get" style="display:inline;">
+                        <button type="submit" class="action-btn unsent">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            Download CSV
+                        </button>
+                    </form>
+
+                    {% if not isPaused and processing %}
+                        <button class="action-btn resume" data-action="resume">
+                            <svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            RESUME SENDING PREVIOUS MAILS
+                        </button>
                     {% endif %}
+                </div>
+
+
                 <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Email Address</th>
-                                <th>Message / Details</th>
-                                <th>Status</th>
+                                <th><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg> #</th>
+                                <th><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Email Address</th>
+                                <th><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Message / Details</th>
+                                <th><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Status</th>
                             </tr>
                         </thead>
                         <tbody id="mail-body">
                             {% for index, mail, message, status in mails %}
-                            <tr
-                                class="status-{{ status|lower|replace(' ', '-') }}"
-                            >
+                            {% if logs_filter == "all" %}
+                            <tr class="mail-row" data-status="{{ status|lower }}">
                                 <td data-label="#">{{ index }}</td>
+
                                 <td data-label="Email">
                                     <span class="email-cell">{{ mail }}</span>
                                 </td>
+
                                 <td data-label="Message">
                                     <div class="message-cell">
                                         {{ message | safe }}
                                     </div>
                                 </td>
+
                                 <td data-label="Status">
-                                    <span
-                                        class="status-cell status-{{ status|lower|replace(' ', '-') }}"
-                                    >
+                                    <span class="status-cell" data-status="{{ status|lower }}">
                                         {{ status }}
                                     </span>
                                 </td>
                             </tr>
+                            {% endif %}
                             {% endfor %}
                         </tbody>
                     </table>
@@ -410,7 +161,7 @@
 
                 <div class="stats-container">
                     <div class="stat-item">
-                        <span>📨</span>
+                        <div class="stat-icon"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
                         <div>
                             <div class="stat-label">Total</div>
                             <div class="stat-value" id="totalCount">
@@ -419,28 +170,28 @@
                         </div>
                     </div>
                     <div class="stat-item">
-                        <span>✅</span>
+                        <div class="stat-icon" style="color: var(--success-text); background: var(--success-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
                         <div>
                             <div class="stat-label">Success</div>
                             <div class="stat-value" id="successCount">{{ totalSuccess }}</div>
                         </div>
                     </div>
                     <div class="stat-item">
-                        <span>❌</span>
+                        <div class="stat-icon" style="color: var(--error-text); background: var(--error-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg></div>
                         <div>
                             <div class="stat-label">Failed</div>
                             <div class="stat-value" id="errorCount">{{ totalError }}</div>
                         </div>
                     </div>
                     <div class="stat-item">
-                        <span>⏳</span>
+                        <div class="stat-icon" style="color: var(--processing-text); background: var(--processing-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
                         <div>
                             <div class="stat-label">Pending</div>
                             <div class="stat-value" id="processingCount">{{ totalProcessing }}</div>
                         </div>
                     </div>
                     <div class="stat-item">
-                        <span>⚠️</span>
+                        <div class="stat-icon" style="color: var(--skipped-text); background: var(--skipped-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg></div>
                         <div>
                             <div class="stat-label">Skipped</div>
                             <div class="stat-value" id="processingCount">{{ totalSkipped }}</div>
@@ -450,7 +201,7 @@
 
                 {% else %}
                 <div class="no-logs-message">
-                    <h3>📭 No logs found</h3>
+                    <h3><svg class="icon" style="width:24px;height:24px;" viewBox="0 0 24 24"><path d="M21.5 12H16c-.7 2-2 3-4 3s-3.3-1-4-3H2.5"></path><path d="M5.5 5.1L2 12v6c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-6l-3.5-6.9A2 2 0 0 0 16.5 4H7.5a2 2 0 0 0-1.8 1.1z"></path></svg> No logs found</h3>
                     <p>There are no email delivery logs to display yet.</p>
                 </div>
                 {% endif %}
@@ -458,7 +209,7 @@
         </div>
 
         <script>
-        // Prevent flash on reload
+            // Prevent flash on reload
             document.documentElement.classList.add("reloading");
             window.addEventListener("load", () => {
                 document.documentElement.classList.remove("reloading");
@@ -472,33 +223,70 @@
             initTheme();
             window.addEventListener('storage', initTheme);
 
-            // async function refreshLogs() {
-            //     document.documentElement.classList.add("reloading");
+            function applyStatusColors() {
+                const rows = document.querySelectorAll(".mail-row");
+                const badges = document.querySelectorAll(".status-cell");
 
-            //     requestAnimationFrame(() => {
-            //         location.replace(location.href);
-            //     });
-            // }
+                // helper: class decide karega
+                function getStatusClass(statusText) {
+                    const s = (statusText || "").trim().toLowerCase();
+                    if (s.startsWith("succ")) return "status-success";       // success
+                    if (s.startsWith("err") || s.startsWith("fail")) return "status-error"; // error/failed
+                    if (s.startsWith("skip")) return "status-skipped";       // skipped
+                    if (s.startsWith("proc") || s.startsWith("pend")) return "status-processing"; // processing/pending
+                    return "status-processing"; // fallback
+                }
+
+                // rows pe status bg (optional)
+                rows.forEach(row => {
+                    const st = row.dataset.status;
+                    const cls = getStatusClass(st);
+                    row.classList.remove("status-success","status-error","status-skipped","status-processing");
+                    row.classList.add(cls);
+                });
+
+                // badge pe status color
+                badges.forEach(badge => {
+                    const st = badge.dataset.status;
+                    const cls = getStatusClass(st);
+                    badge.classList.remove("status-success","status-error","status-skipped","status-processing");
+                    badge.classList.add(cls);
+                });
+            }
+
+            // ✅ initial load
+            applyStatusColors();
 
             async function refreshLogs() {
                 try {
                     const res = await fetch(location.href, {
-                        headers: {
-                            "X-Requested-With": "fetch"
-                        }
+                        headers: { "X-Requested-With": "fetch" }
                     });
-
                     const html = await res.text();
-
                     // Parse new document
                     const parser = new DOMParser();
                     const newDoc = parser.parseFromString(html, "text/html");
-
                     // Replace <html> entirely
                     document.documentElement.replaceWith(newDoc.documentElement);
-
+                    applyStatusColors();
                 } catch (err) {
                     console.error("Full page replace failed:", err);
+                }
+            }
+
+            // New Function for Filter Buttons
+            async function filterLogs(filterType) {
+                try {
+                    await fetch('/show_particular_logs', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ filter: filterType })
+                    });
+                    window.location.reload();
+                } catch (err) {
+                    console.error("Filter request failed", err);
                 }
             }
 
@@ -512,20 +300,12 @@
             document.addEventListener("click", async (e) => {
                 const btn = e.target.closest(".action-btn");
                 if (!btn) return;
-
                 const action = btn.dataset.action;
 
                 // 🔄 Instant UI toggle
                 if (action === "resume") {
-                    btn.textContent = "PAUSE";
-                    btn.dataset.action = "pause";
-                    btn.classList.remove("resume", "unsent");
-                    btn.classList.add("pause");
-                } else if (action === "pause") {
-                    btn.textContent = "RESUME";
-                    btn.dataset.action = "resume";
-                    btn.classList.remove("pause");
-                    btn.classList.add("resume");
+                    btn.textContent = "Processing sending all previous mails....";
+                    btn.disabled = true;
                 }
 
                 // 📡 Notify backend (non-blocking UX)
@@ -539,6 +319,6 @@
                     console.error(err);
                 }
             });
-            </script>
+        </script>
     </body>
 </html>

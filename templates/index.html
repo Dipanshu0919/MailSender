@@ -443,9 +443,9 @@
             }
             .logs-container {
                 background: var(--bg-secondary);
-                width: 90%;
-                max-width: 1000px;
-                height: 85%;
+                width: 100vw;
+                max-width: none;
+                height: 100vh;
                 border-radius: 8px;
                 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
                 display: flex;
@@ -541,7 +541,7 @@
                 {% if not mail %}
                 <div class="alert alert-error">
                     Email address not found in the environment. Please configure
-                    your email settings.
+                    your email settings<code>MAILSENDER_SMTP_MAIL</code>.
                 </div>
                 {% endif %} {% if not provider %}
                 <div class="alert alert-error">
@@ -555,7 +555,7 @@
                 {% endif %} {% if not password %}
                 <div class="alert alert-error">
                     APP Password not found in the environment. Please set your
-                    application password.
+                    application password<code>MAILSENDER_SMTP_MAIL_APP_PASSWORD</code>.
                 </div>
                 {% endif %}
 
@@ -661,284 +661,297 @@
         </div>
 
         <script>
-            // Theme management
-            function initTheme() {
-                const savedTheme = localStorage.getItem("theme") || "light";
-                document.documentElement.setAttribute("data-theme", savedTheme);
-                updateThemeButton(savedTheme);
-            }
+    // Theme management
+    function initTheme() {
+        const savedTheme = localStorage.getItem("theme") || "light";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+        updateThemeButton(savedTheme);
+    }
 
-            function updateThemeButton(theme) {
-                const btn = document.getElementById("themeToggle");
-                if (theme === "dark") {
-                    btn.textContent = "☀️ Light Mode";
-                } else {
-                    btn.textContent = "🌙 Dark Mode";
-                }
-            }
+    function updateThemeButton(theme) {
+        const btn = document.getElementById("themeToggle");
+        if (theme === "dark") {
+            btn.textContent = "☀️ Light Mode";
+        } else {
+            btn.textContent = "🌙 Dark Mode";
+        }
+    }
 
-            function toggleTheme() {
-                const currentTheme =
-                    document.documentElement.getAttribute("data-theme") ||
-                    "light";
-                const newTheme = currentTheme === "light" ? "dark" : "light";
-                document.documentElement.setAttribute("data-theme", newTheme);
-                localStorage.setItem("theme", newTheme);
-                updateThemeButton(newTheme);
-            }
+    function toggleTheme() {
+        const currentTheme =
+            document.documentElement.getAttribute("data-theme") ||
+            "light";
+        const newTheme = currentTheme === "light" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+        updateThemeButton(newTheme);
+    }
 
-            document
-                .getElementById("themeToggle")
-                .addEventListener("click", toggleTheme);
+    document
+        .getElementById("themeToggle")
+        .addEventListener("click", toggleTheme);
 
-            // Initialize theme on page load
-            initTheme();
+    // Initialize theme on page load
+    initTheme();
 
-            // Rest of the existing code
-            const $ = (id) => document.getElementById(id);
-            const select = (q) => document.querySelectorAll(q);
-            const post = (url, fd) =>
-                fetch(url, { method: "POST", body: fd }).then((r) => r.json());
+    // --- FIX STARTS HERE ---
 
-            let emailColumn, timer;
-            let selectedSet = new Set();
+    const $ = (id) => document.getElementById(id);
+    const select = (q) => document.querySelectorAll(q);
+    const post = (url, fd) =>
+        fetch(url, { method: "POST", body: fd }).then((r) => r.json());
 
-            function reset() {
-                $("fileoption").innerHTML =
-                    $("showemails").innerHTML =
-                    $("keys").innerHTML =
-                        "";
-                $("message").style.display = $("emailControls").style.display =
-                    "none";
-                $("messagebox").value = "";
-                selectedSet.clear();
-            }
+    let emailColumn, timer;
+    // FIX 1: Track selection by unique Index ID, not by Email address
+    let selectedSet = new Set();
 
-            function openLogs() {
-                const overlay = $("logsOverlay");
-                const frame = $("logsFrame");
-                frame.src = "/show_logs";
-                overlay.style.display = "flex";
-            }
+    function reset() {
+        $("fileoption").innerHTML =
+            $("showemails").innerHTML =
+            $("keys").innerHTML =
+                "";
+        $("message").style.display = $("emailControls").style.display =
+            "none";
+        $("messagebox").value = "";
+        selectedSet.clear();
+    }
 
-            function closeLogs() {
-                const overlay = $("logsOverlay");
-                const frame = $("logsFrame");
-                overlay.style.display = "none";
-                frame.src = "about:blank";
-            }
+    function openLogs() {
+        const overlay = $("logsOverlay");
+        const frame = $("logsFrame");
+        frame.src = "/show_logs";
+        overlay.style.display = "flex";
+    }
 
-            document.querySelectorAll(".showLogsBtn").forEach((btn) => {
-                btn.onclick = openLogs;
-            });
+    function closeLogs() {
+        const overlay = $("logsOverlay");
+        const frame = $("logsFrame");
+        overlay.style.display = "none";
+        frame.src = "about:blank";
+    }
 
-            $("closeLogsBtn").onclick = closeLogs;
+    document.querySelectorAll(".showLogsBtn").forEach((btn) => {
+        btn.onclick = openLogs;
+    });
 
-            $("logsOverlay").onclick = (e) => {
-                if (e.target === $("logsOverlay")) closeLogs();
-            };
+    $("closeLogsBtn").onclick = closeLogs;
 
-            document.addEventListener("keydown", (e) => {
-                if (
-                    e.key === "Escape" &&
-                    $("logsOverlay").style.display === "flex"
-                )
-                    closeLogs();
-            });
+    $("logsOverlay").onclick = (e) => {
+        if (e.target === $("logsOverlay")) closeLogs();
+    };
 
-            $("fileInput").onchange = async () => {
-                reset();
-                const fd = new FormData();
-                fd.append("file", fileInput.files[0]);
-                const cols = await post("/file", fd);
-                $("fileoption").innerHTML = `
-                    <div class="form-group">
-                        <label class="form-label">Select Email Column</label>
-                        <div class="radio-group">
-                            ${cols.map((c) => `<label class="radio-label"><input type="radio" name="col" value="${c}"><span>${c}</span></label>`).join("")}
-                        </div>
-                    </div>`;
-            };
+    document.addEventListener("keydown", (e) => {
+        if (
+            e.key === "Escape" &&
+            $("logsOverlay").style.display === "flex"
+        )
+            closeLogs();
+    });
 
-            $("fileoption").onchange = async (e) => {
-                if (!e.target.value) return;
-                emailColumn = e.target.value;
-                const fd = new FormData();
-                fd.append("emailoption", emailColumn);
-                render(await post("/showemails", fd));
-                $("message").style.display = "block";
-            };
+    $("fileInput").onchange = async () => {
+        reset();
+        const fd = new FormData();
+        fd.append("file", fileInput.files[0]);
+        const cols = await post("/file", fd);
+        $("fileoption").innerHTML = `
+            <div class="form-group">
+                <label class="form-label">Select Email Column</label>
+                <div class="radio-group">
+                    ${cols.map((c) => `<label class="radio-label"><input type="radio" name="col" value="${c}"><span>${c}</span></label>`).join("")}
+                </div>
+            </div>`;
+    };
 
-            $("keys").onclick = (e) => {
-                if (e.target.tagName !== "BUTTON") return;
-                const t = $("messagebox");
-                const k = `$(${e.target.dataset.key})$`;
-                t.focus();
-                const p = t.selectionStart ?? t.value.length;
-                t.value = t.value.slice(0, p) + k + t.value.slice(p);
-                const newPos = p + k.length;
-                t.setSelectionRange(newPos, newPos);
-                t.dispatchEvent(new Event("input", { bubbles: true }));
-            };
+    $("fileoption").onchange = async (e) => {
+        if (!e.target.value) return;
+        emailColumn = e.target.value;
+        const fd = new FormData();
+        fd.append("emailoption", emailColumn);
+        render(await post("/showemails", fd));
+        $("message").style.display = "block";
+    };
 
-            $("messagebox").oninput = () => {
-                clearTimeout(timer);
-                timer = setTimeout(async () => {
-                    if (!emailColumn) return;
-                    const fd1 = new FormData();
-                    fd1.append("message", $("messagebox").value);
-                    await fetch("/editmessage", { method: "POST", body: fd1 });
-                    const fd2 = new FormData();
-                    fd2.append("emailoption", emailColumn);
-                    render(await post("/showemails", fd2));
-                }, 300);
-            };
+    $("keys").onclick = (e) => {
+        if (e.target.tagName !== "BUTTON") return;
+        const t = $("messagebox");
+        const k = `$(${e.target.dataset.key})$`;
+        t.focus();
+        const p = t.selectionStart ?? t.value.length;
+        t.value = t.value.slice(0, p) + k + t.value.slice(p);
+        const newPos = p + k.length;
+        t.setSelectionRange(newPos, newPos);
+        t.dispatchEvent(new Event("input", { bubbles: true }));
+    };
 
-            $("showemails").addEventListener("change", (e) => {
-                if (!e.target.classList.contains("cb")) return;
-                const email = e.target.dataset.email;
-                e.target.checked
-                    ? selectedSet.add(email)
-                    : selectedSet.delete(email);
-            });
+    $("messagebox").oninput = () => {
+        clearTimeout(timer);
+        timer = setTimeout(async () => {
+            if (!emailColumn) return;
+            const fd1 = new FormData();
+            fd1.append("message", $("messagebox").value);
+            await fetch("/editmessage", { method: "POST", body: fd1 });
+            const fd2 = new FormData();
+            fd2.append("emailoption", emailColumn);
+            render(await post("/showemails", fd2));
+        }, 300);
+    };
 
-            $("showemails").addEventListener("click", (e) => {
-                const header = e.target.closest(".section-header");
-                if (!header) return;
-                const target = $(header.dataset.target);
-                const icon = header.querySelector(".toggle");
-                target.classList.toggle("hidden");
-                icon.textContent = target.classList.contains("hidden")
-                    ? "+"
-                    : "−";
-            });
+    // FIX 2: Checkbox change listener uses unique dataset.index
+    $("showemails").addEventListener("change", (e) => {
+        if (!e.target.classList.contains("cb")) return;
+        const idx = e.target.dataset.index; // Use Index instead of Email
+        e.target.checked
+            ? selectedSet.add(idx)
+            : selectedSet.delete(idx);
+    });
 
-            function render(data) {
-                $("emailControls").style.display = "block";
-                $("keys").innerHTML = data.allkeys
-                    .map(
-                        (k) =>
-                            `<button type="button" class="placeholder-btn" data-key="${k}">${k}</button>`,
-                    )
-                    .join(" ");
+    $("showemails").addEventListener("click", (e) => {
+        const header = e.target.closest(".section-header");
+        if (!header) return;
+        const target = $(header.dataset.target);
+        const icon = header.querySelector(".toggle");
+        target.classList.toggle("hidden");
+        icon.textContent = target.classList.contains("hidden")
+            ? "+"
+            : "−";
+    });
 
-                const valid = [],
-                    error = [],
-                    placeholderError = [];
-                data.emails.forEach((email, i) => {
-                    const message = data.messages[i] || "";
-                    const row = { email, msg: message, idx: i };
-                    if (message.startsWith("placeholder_error:"))
-                        placeholderError.push(row);
-                    else if (email.includes("ERROR:")) error.push(row);
-                    else valid.push(row);
-                });
+    function render(data) {
+        $("emailControls").style.display = "block";
+        $("keys").innerHTML = data.allkeys
+            .map(
+                (k) =>
+                    `<button type="button" class="placeholder-btn" data-key="${k}">${k}</button>`,
+            )
+            .join(" ");
 
-                const renderRows = (rows, isError = false) =>
-                    rows
-                        .map((r) => {
-                            const checked = selectedSet.has(r.email)
-                                ? "checked"
-                                : "";
-                            return `<div class="email-row ${isError ? "error" : ""}">
-                            ${isError ? "" : `<input type="checkbox" class="cb" data-email="${r.email}" data-message="${r.msg}" data-index="${r.idx + 1}" ${checked}>`}
-                            <span class="email-text"><b>${r.idx + 1}.</b> ${r.email} - ${r.msg}</span>
-                        </div>`;
-                        })
-                        .join("");
+        const valid = [],
+            error = [],
+            placeholderError = [];
+        data.emails.forEach((email, i) => {
+            const message = data.messages[i] || "";
+            // Keep track of index (i) for unique identification
+            const row = { email, msg: message, idx: i };
+            if (message.startsWith("placeholder_error:"))
+                placeholderError.push(row);
+            else if (email.includes("ERROR:")) error.push(row);
+            else valid.push(row);
+        });
 
-                $("showemails").innerHTML = `
-                    <div class="section">
-                        <div class="section-header" data-target="errorSection">
-                            <div class="section-title">
-                                <span class="toggle">+</span>
-                                <span>Error Emails</span>
-                                <span class="badge badge-error">${error.length}</span>
-                            </div>
-                        </div>
-                        <div id="errorSection" class="section-content hidden">
-                            ${error.length > 0 ? renderRows(error, true) : '<p style="color: #6b7280;">No errors found</p>'}
-                        </div>
+        const renderRows = (rows, isError = false) =>
+            rows
+                .map((r) => {
+                    // FIX 3: Check against Index (r.idx + 1)
+                    const rowId = (r.idx + 1).toString();
+                    const checked = selectedSet.has(rowId)
+                        ? "checked"
+                        : "";
+                    return `<div class="email-row ${isError ? "error" : ""}">
+                    ${isError ? "" : `<input type="checkbox" class="cb" data-email="${r.email}" data-message="${r.msg}" data-index="${rowId}" ${checked}>`}
+                    <span class="email-text"><b>${rowId}.</b> ${r.email} - ${r.msg}</span>
+                </div>`;
+                })
+                .join("");
+
+        $("showemails").innerHTML = `
+            <div class="section">
+                <div class="section-header" data-target="errorSection">
+                    <div class="section-title">
+                        <span class="toggle">+</span>
+                        <span>Error Emails</span>
+                        <span class="badge badge-error">${error.length}</span>
                     </div>
-                    <div class="section">
-                        <div class="section-header" data-target="validSection">
-                            <div class="section-title">
-                                <span class="toggle">−</span>
-                                <span>Valid Emails</span>
-                                <span class="badge badge-success">${valid.length}</span>
-                            </div>
-                        </div>
-                        <div id="validSection" class="section-content">
-                            ${valid.length > 0 ? renderRows(valid) : '<p style="color: #6b7280;">No valid emails found</p>'}
-                        </div>
-                    </div>`;
-            }
+                </div>
+                <div id="errorSection" class="section-content hidden">
+                    ${error.length > 0 ? renderRows(error, true) : '<p style="color: #6b7280;">No errors found</p>'}
+                </div>
+            </div>
+            <div class="section">
+                <div class="section-header" data-target="validSection">
+                    <div class="section-title">
+                        <span class="toggle">−</span>
+                        <span>Valid Emails</span>
+                        <span class="badge badge-success">${valid.length}</span>
+                    </div>
+                </div>
+                <div id="validSection" class="section-content">
+                    ${valid.length > 0 ? renderRows(valid) : '<p style="color: #6b7280;">No valid emails found</p>'}
+                </div>
+            </div>`;
+    }
 
-            $("selectAll").onclick = () => {
-                select(".cb").forEach((c) => {
-                    c.checked = true;
-                    selectedSet.add(c.dataset.email);
-                });
-            };
+    // FIX 4: Update Select All/None/Range to use Index
+    $("selectAll").onclick = () => {
+        select(".cb").forEach((c) => {
+            c.checked = true;
+            selectedSet.add(c.dataset.index);
+        });
+    };
 
-            $("deselectAll").onclick = () => {
-                select(".cb").forEach((c) => {
-                    c.checked = false;
-                    selectedSet.delete(c.dataset.email);
-                });
-            };
+    $("deselectAll").onclick = () => {
+        select(".cb").forEach((c) => {
+            c.checked = false;
+            selectedSet.delete(c.dataset.index);
+        });
+    };
 
-            $("selectRange").onclick = () => {
-                const s = parseInt($("rangeStart").value) - 1;
-                const e = parseInt($("rangeEnd").value) - 1;
-                const boxes = [...select(".cb")];
-                if (
-                    isNaN(s) ||
-                    isNaN(e) ||
-                    s < 0 ||
-                    e >= boxes.length ||
-                    s > e
-                ) {
-                    alert("Invalid range. Please check your input.");
-                    return;
-                }
-                for (let i = s; i <= e; i++) {
-                    boxes[i].checked = true;
-                    selectedSet.add(boxes[i].dataset.email);
-                }
-            };
+    $("selectRange").onclick = () => {
+        const s = parseInt($("rangeStart").value) - 1;
+        const e = parseInt($("rangeEnd").value) - 1;
+        const boxes = [...select(".cb")];
+        if (
+            isNaN(s) ||
+            isNaN(e) ||
+            s < 0 ||
+            e >= boxes.length ||
+            s > e
+        ) {
+            alert("Invalid range. Please check your input.");
+            return;
+        }
+        for (let i = s; i <= e; i++) {
+            boxes[i].checked = true;
+            selectedSet.add(boxes[i].dataset.index);
+        }
+    };
 
-            $("submit").onclick = async () => {
-                if (!$("messagebox").value.trim()) {
-                    alert(
-                        "Message cannot be empty. Please enter your email content.",
-                    );
-                    return;
-                }
-                if (selectedSet.size === 0) {
-                    alert("Please select at least one email recipient.");
-                    return;
-                }
-                const selectedEmails = {};
-                select(".cb:checked").forEach((c) => {
-                    selectedEmails[c.dataset.email] = [
-                        Number(c.dataset.index),
-                        c.dataset.message,
-                    ];
-                });
-                const fd = new FormData();
-                fd.append("subject", $("subjectbox").value);
-                fd.append("selected_mails", JSON.stringify(selectedEmails));
-                const r = await fetch("/selectemails", {
-                    method: "POST",
-                    body: fd,
-                });
-                openLogs();
-                const result = await r.json();
-                alert(result.status || "Emails sent successfully!");
-                $("showLogsBtn").style.display = "inline-block";
-                openLogs();
-            };
-        </script>
+    $("submit").onclick = async () => {
+        if (!$("messagebox").value.trim()) {
+            alert(
+                "Message cannot be empty. Please enter your email content.",
+            );
+            return;
+        }
+        if (selectedSet.size === 0) {
+            alert("Please select at least one email recipient.");
+            return;
+        }
+
+        // FIX 5: CRITICAL CHANGE
+        // Instead of an Object {} (which deletes duplicates), we use an Array []
+        const selectedEmails = [];
+        select(".cb:checked").forEach((c) => {
+            selectedEmails.push({
+                email: c.dataset.email,
+                data: [Number(c.dataset.index), c.dataset.message]
+            });
+        });
+
+        const fd = new FormData();
+        fd.append("subject", $("subjectbox").value);
+        // This sends an ARRAY of objects now
+        fd.append("selected_mails", JSON.stringify(selectedEmails));
+
+        const r = await fetch("/selectemails", {
+            method: "POST",
+            body: fd,
+        });
+        openLogs();
+        const result = await r.json();
+        alert(result.status || "Emails sent successfully!");
+        $("showLogsBtn").style.display = "inline-block";
+        openLogs();
+    };
+</script>
     </body>
 </html>
