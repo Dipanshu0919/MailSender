@@ -1,7 +1,3 @@
-<!-- Pause / Resume options disabled for now
-Resume for previous mails avaiable
--->
-
 <!doctype html>
 <html lang="en">
     <head>
@@ -9,54 +5,58 @@ Resume for previous mails avaiable
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Email Delivery Logs</title>
         <style>
-            :root { --bg-primary: #ffffff; --bg-secondary: #f9fafb; --text-primary: #1f2937; --text-secondary: #6b7280; --border-color: #e5e7eb; --header-bg: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); --success-bg: #d1fae5; --success-text: #065f46; --success-border: #6ee7b7; --error-bg: #fee2e2; --error-text: #991b1b; --error-border: #fca5a5; --skipped-bg: #fef3c7; --skipped-text: #92400e; --skipped-border: #fde68a; --processing-bg: #dbeafe; --processing-text: #1e40af; --processing-border: #93c5fd; --info-bg: #f3f4f6; --info-text: #374151; --shadow: 0 2px 8px rgba(0, 0, 0, 0.05); --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1); }
-            html[data-theme="dark"] { --bg-primary: #0f172a; --bg-secondary: #1e293b; --text-primary: #f8fafc; --text-secondary: #94a3b8; --border-color: #334155; --header-bg: #1e293b; --success-bg: rgba(6, 95, 70, 0.5); --success-text: #6ee7b7; --success-border: #065f46; --error-bg: rgba(153, 27, 27, 0.5); --error-text: #fca5a5; --error-border: #7f1d1d; --skipped-bg: rgba(146, 64, 14, 0.5); --skipped-text: #fcd34d; --skipped-border: #78350f; --processing-bg: rgba(30, 58, 138, 0.5); --processing-text: #93c5fd; --processing-border: #1e40af; --info-bg: #334155; --info-text: #e2e8f0; }
+            :root { --bg-primary: #ffffff; --bg-secondary: #f9fafb; --text-primary: #1f2937; --text-secondary: #6b7280; --border-color: #e5e7eb; --header-bg: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); --success-bg: #d1fae5; --success-text: #065f46; --success-border: #6ee7b7; --error-bg: #fee2e2; --error-text: #991b1b; --error-border: #fca5a5; --skipped-bg: #fef3c7; --skipped-text: #92400e; --skipped-border: #fde68a; --processing-bg: #dbeafe; --processing-text: #1e40af; --processing-border: #93c5fd; --info-bg: #f3f4f6; --info-text: #374151; --shadow: 0 1px 3px rgba(0, 0, 0, 0.08); --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.08); }
+            html[data-theme="dark"] { --bg-primary: #0f172a; --bg-secondary: #1e293b; --text-primary: #f8fafc; --text-secondary: #94a3b8; --border-color: #334155; --header-bg: #1e293b; --success-bg: rgba(6, 95, 70, 0.2); --success-text: #6ee7b7; --success-border: #065f46; --error-bg: rgba(153, 27, 27, 0.2); --error-text: #fca5a5; --error-border: #7f1d1d; --skipped-bg: rgba(146, 64, 14, 0.2); --skipped-text: #fcd34d; --skipped-border: #78350f; --processing-bg: rgba(30, 58, 138, 0.2); --processing-text: #93c5fd; --processing-border: #1e40af; --info-bg: #334155; --info-text: #e2e8f0; }
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding: 20px; }
-            .icon { width: 1.2em; height: 1.2em; vertical-align: middle; margin-right: 6px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: inline-block; position: relative; top: -1px; }
-            .action-btn { background: linear-gradient(135deg,#2563eb,#1e40af); color:#fff; border:1px solid rgba(255,255,255,.2); padding:10px 18px; border-radius:8px; font-weight:700; cursor:pointer; box-shadow:var(--shadow); transition:all .2s ease; display: inline-flex; align-items: center; gap: 6px; }
-            .action-btn:hover { transform:translateY(-1px); box-shadow:var(--shadow-lg); }
-            .action-btn:active { transform:scale(.97); }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; padding: 20px; line-height: 1.5; }
+            .icon { width: 1.1em; height: 1.1em; vertical-align: middle; margin-right: 6px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: inline-block; position: relative; top: -1px; }
+            .action-btn { background: linear-gradient(135deg,#2563eb,#1e40af); color:#fff; border:1px solid rgba(255,255,255,.15); padding:10px 16px; border-radius:8px; font-weight:600; font-size: 14px; cursor:pointer; box-shadow:var(--shadow); transition:all .2s ease; display: inline-flex; align-items: center; gap: 6px; }
+            .action-btn:hover { transform:translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); }
+            .action-btn:active { transform:scale(.98); }
             .action-btn.pause { background:linear-gradient(135deg,#dc2626,#991b1b); }
             .action-btn.resume { background:linear-gradient(135deg,#16a34a,#065f46); }
             .action-btn.unsent { background:linear-gradient(135deg,#ca8a04,#92400e); margin-right: 10px; }
-            .filter-container { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; padding: 10px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color); }
-            .filter-btn { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
-            .filter-btn:hover { background: var(--bg-secondary); border-color: var(--text-secondary); }
+            .filter-container { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color); }
+            .filter-btn { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+            .filter-btn:hover { background: var(--bg-secondary); border-color: var(--text-secondary); transform: translateY(-1px); box-shadow: var(--shadow); }
             .filter-btn svg { width: 16px; height: 16px; stroke-width: 2; }
             .logs-container { max-width: 100wh; margin: 0 auto; box-shadow: var(--shadow-lg); border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); }
-            .logs-header { background: var(--header-bg); color: white; padding: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid var(--border-color); }
-            .logs-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; }
-            .logs-header-subtitle { font-size: 14px; opacity: 0.9; display: flex; align-items: center; color: rgba(255,255,255,0.8); }
-            .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; font-size: 13px; font-weight: 600; backdrop-filter: blur(4px); }
+            .logs-header { background: var(--header-bg); color: white; padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; border-bottom: 1px solid var(--border-color); }
+            .logs-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; letter-spacing: -0.02em; }
+            .logs-header-subtitle { font-size: 14px; opacity: 0.9; display: flex; align-items: center; color: rgba(255,255,255,0.85); font-weight: 500; }
+            .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; font-size: 13px; font-weight: 600; backdrop-filter: blur(6px); }
             .table-wrapper { width: 100%; overflow-x: auto; background: var(--bg-primary); margin-top: 15px; border: 1px solid var(--border-color); border-radius: 6px; }
-            table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+            table { width: 100%; border-collapse: collapse; font-size: 15px; table-layout: fixed; }
             thead { background: var(--bg-secondary); border-bottom: 2px solid var(--border-color); position: sticky; top: 0; z-index: 10; }
-            th { padding: 16px; text-align: left; font-weight: 700; color: var(--text-primary); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; white-space: nowrap; display: table-cell; }
+            th { padding: 14px 16px; text-align: left; font-weight: 700; color: var(--text-primary); text-transform: uppercase; font-size: 11px; letter-spacing: 0.7px; white-space: nowrap; display: table-cell; }
             th svg { width: 14px; height: 14px; vertical-align: middle; margin-right: 6px; opacity: 0.7; position: relative; top: -1px; }
-            th:nth-child(1) { width: 80px; }
-            th:nth-child(2) { width: 30%; }
-            th:nth-child(3) { width: 45%; }
-            th:nth-child(4) { width: 150px; }
-            tbody tr { border-bottom: 1px solid var(--border-color); background: var(--bg-primary); transition: background 0.2s; }
+            th:nth-child(1) { width: 70px; }
+            th:nth-child(2) { width: 28%; }
+            th:nth-child(3) { width: 40%; }
+            th:nth-child(4) { width: 130px; }
+            th:nth-child(5) { width: 160px; }
+            tbody tr { border-bottom: 1px solid var(--border-color); background: var(--bg-primary); transition: background 0.15s; }
             tbody tr:hover { background: var(--bg-secondary); }
-            td { padding: 14px 16px; color: var(--text-secondary); vertical-align: top; word-wrap: break-word; }
-            .email-cell { font-family: "Courier New", monospace; font-weight: 500; color: var(--text-primary); word-break: break-all; display: flex; align-items: center; }
-            .message-cell { max-height: 80px; overflow-y: auto; font-size: 13px; line-height: 1.4; padding-right: 5px; color: var(--text-secondary); }
-            .status-cell { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 11px; text-transform: uppercase; border: 1px solid; }
+            tbody tr:last-child { border-bottom: none; }
+            td { padding: 16px; color: var(--text-secondary); vertical-align: middle; word-wrap: break-word; font-size: 14px; line-height: 1.5; }
+            .email-cell { font-family: "SF Mono", "Monaco", "Consolas", monospace; font-weight: 500; color: var(--text-primary); word-break: break-all; display: flex; align-items: center; font-size: 14px; }
+            .message-cell { font-size: 14px; line-height: 1.6; color: var(--text-secondary); max-height: none; }
+            .status-cell { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 11px; text-transform: uppercase; border: 1px solid; letter-spacing: 0.5px; }
             .status-success { background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
             .status-error { background: var(--error-bg); color: var(--error-text); border-color: var(--error-border); }
             .status-skipped { background: var(--skipped-bg); color: var(--skipped-text); border-color: var(--skipped-border); }
             .status-processing { background: var(--processing-bg); color: var(--processing-text); border-color: var(--processing-border); }
-            .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; padding: 20px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); }
-            .stat-item { background: var(--bg-primary); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow); transition: transform 0.2s; }
-            .stat-item:hover { transform: translateY(-2px); }
-            .stat-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); color: var(--text-primary); flex-shrink: 0; }
-            .stat-value { font-size: 20px; font-weight: 700; color: var(--text-primary); }
-            .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
+            .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; padding: 18px 20px; background: var(--bg-secondary); border-top: 1px solid var(--border-color); }
+            .stat-item { background: var(--bg-primary); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 13px; box-shadow: var(--shadow); transition: transform 0.2s; }
+            .stat-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+            .stat-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); color: var(--text-primary); flex-shrink: 0; }
+            .stat-value { font-size: 22px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+            .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px; margin-top: 3px; }
             .no-logs-message { padding: 50px; text-align: center; color: var(--text-secondary); }
+            .no-logs-message h3 { font-size: 18px; margin-bottom: 8px; color: var(--text-primary); }
+            .no-logs-message p { font-size: 14px; }
             html.reloading, html.reloading body { background: var(--bg-primary); opacity: 1; }
-            @media (max-width: 768px) { thead { display: none; } tbody, tr, td { display: block; width: 100%; } tr { margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow); padding: 10px; } td { display: flex; justify-content: space-between; align-items: center; text-align: right; padding: 10px 5px; border-bottom: 1px solid var(--bg-secondary); } td:last-child { border-bottom: none; } td::before { content: attr(data-label); float: left; font-weight: 700; text-transform: uppercase; font-size: 11px; color: var(--text-secondary); margin-right: 10px; display: flex; align-items: center; } .email-cell { font-size: 14px; text-align: right; justify-content: flex-end; } .message-cell { text-align: left; margin-top: 5px; max-height: none; } td[data-label="Message"] { flex-direction: column; align-items: flex-start; text-align: left; } .filter-container { justify-content: center; } }
+            @media (max-width: 768px) { thead { display: none; } tbody, tr, td { display: block; width: 100%; } tr { margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow); padding: 10px; } td { display: flex; justify-content: space-between; align-items: center; text-align: right; padding: 10px 5px; border-bottom: 1px solid var(--bg-secondary); } td:last-child { border-bottom: none; } td::before { content: attr(data-label); float: left; font-weight: 700; text-transform: uppercase; font-size: 11px; color: var(--text-secondary); margin-right: 10px; display: flex; align-items: center; letter-spacing: 0.5px; } .email-cell { font-size: 13px; text-align: right; justify-content: flex-end; } .message-cell { text-align: left; margin-top: 5px; max-height: none; } td[data-label="Message"] { flex-direction: column; align-items: flex-start; text-align: left; } .filter-container { justify-content: center; } }
         </style>
     </head>
     <body>
@@ -81,6 +81,46 @@ Resume for previous mails avaiable
             <div class="logs-content">
                 {% if mails %}
                 <br>
+
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <div class="stat-icon"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
+                        <div>
+                            <div class="stat-label">Total</div>
+                            <div class="stat-value" id="totalCount">
+                                {{ mails|length }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="color: var(--success-text); background: var(--success-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                        <div>
+                            <div class="stat-label">Success</div>
+                            <div class="stat-value" id="successCount">{{ totalSuccess }}</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="color: var(--error-text); background: var(--error-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg></div>
+                        <div>
+                            <div class="stat-label">Failed</div>
+                            <div class="stat-value" id="errorCount">{{ totalError }}</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="color: var(--processing-text); background: var(--processing-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                        <div>
+                            <div class="stat-label">Pending</div>
+                            <div class="stat-value" id="processingCount">{{ totalProcessing }}</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="color: var(--skipped-text); background: var(--skipped-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg></div>
+                        <div>
+                            <div class="stat-label">Skipped</div>
+                            <div class="stat-value" id="processingCount">{{ totalSkipped }}</div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Filter Buttons Section -->
                 <div class="filter-container">
@@ -129,11 +169,12 @@ Resume for previous mails avaiable
                                 <th><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Email Address</th>
                                 <th><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Message / Details</th>
                                 <th><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Status</th>
+                                <th><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> At Time</th>
                             </tr>
                         </thead>
                         <tbody id="mail-body">
-                            {% for index, mail, message, status in mails %}
-                            {% if logs_filter == "all" %}
+                            {% for index, mail, message, status, time in mails %}
+                            {% if status|lower in logs_filter %}
                             <tr class="mail-row" data-status="{{ status|lower }}">
                                 <td data-label="#">{{ index }}</td>
 
@@ -152,6 +193,12 @@ Resume for previous mails avaiable
                                         {{ status }}
                                     </span>
                                 </td>
+
+                                <td data-label="At Time">
+                                    <div class="message-cell">
+                                        {{ time }}
+                                    </div>
+                                </td>
                             </tr>
                             {% endif %}
                             {% endfor %}
@@ -159,45 +206,7 @@ Resume for previous mails avaiable
                     </table>
                 </div>
 
-                <div class="stats-container">
-                    <div class="stat-item">
-                        <div class="stat-icon"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div>
-                        <div>
-                            <div class="stat-label">Total</div>
-                            <div class="stat-value" id="totalCount">
-                                {{ mails|length }}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon" style="color: var(--success-text); background: var(--success-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
-                        <div>
-                            <div class="stat-label">Success</div>
-                            <div class="stat-value" id="successCount">{{ totalSuccess }}</div>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon" style="color: var(--error-text); background: var(--error-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg></div>
-                        <div>
-                            <div class="stat-label">Failed</div>
-                            <div class="stat-value" id="errorCount">{{ totalError }}</div>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon" style="color: var(--processing-text); background: var(--processing-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
-                        <div>
-                            <div class="stat-label">Pending</div>
-                            <div class="stat-value" id="processingCount">{{ totalProcessing }}</div>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon" style="color: var(--skipped-text); background: var(--skipped-bg)"><svg class="icon" style="margin:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg></div>
-                        <div>
-                            <div class="stat-label">Skipped</div>
-                            <div class="stat-value" id="processingCount">{{ totalSkipped }}</div>
-                        </div>
-                    </div>
-                </div>
+
 
                 {% else %}
                 <div class="no-logs-message">
@@ -209,13 +218,11 @@ Resume for previous mails avaiable
         </div>
 
         <script>
-            // Prevent flash on reload
             document.documentElement.classList.add("reloading");
             window.addEventListener("load", () => {
                 document.documentElement.classList.remove("reloading");
             });
 
-            // Theme Init
             function initTheme() {
                 const parentTheme = localStorage.getItem('theme') || 'light';
                 document.documentElement.setAttribute('data-theme', parentTheme);
@@ -227,17 +234,15 @@ Resume for previous mails avaiable
                 const rows = document.querySelectorAll(".mail-row");
                 const badges = document.querySelectorAll(".status-cell");
 
-                // helper: class decide karega
                 function getStatusClass(statusText) {
                     const s = (statusText || "").trim().toLowerCase();
-                    if (s.startsWith("succ")) return "status-success";       // success
-                    if (s.startsWith("err") || s.startsWith("fail")) return "status-error"; // error/failed
-                    if (s.startsWith("skip")) return "status-skipped";       // skipped
-                    if (s.startsWith("proc") || s.startsWith("pend")) return "status-processing"; // processing/pending
-                    return "status-processing"; // fallback
+                    if (s.startsWith("succ")) return "status-success";
+                    if (s.startsWith("err") || s.startsWith("fail")) return "status-error";
+                    if (s.startsWith("skip")) return "status-skipped";
+                    if (s.startsWith("proc") || s.startsWith("pend")) return "status-processing";
+                    return "status-processing";
                 }
 
-                // rows pe status bg (optional)
                 rows.forEach(row => {
                     const st = row.dataset.status;
                     const cls = getStatusClass(st);
@@ -245,7 +250,6 @@ Resume for previous mails avaiable
                     row.classList.add(cls);
                 });
 
-                // badge pe status color
                 badges.forEach(badge => {
                     const st = badge.dataset.status;
                     const cls = getStatusClass(st);
@@ -254,7 +258,6 @@ Resume for previous mails avaiable
                 });
             }
 
-            // ✅ initial load
             applyStatusColors();
 
             async function refreshLogs() {
@@ -263,10 +266,8 @@ Resume for previous mails avaiable
                         headers: { "X-Requested-With": "fetch" }
                     });
                     const html = await res.text();
-                    // Parse new document
                     const parser = new DOMParser();
                     const newDoc = parser.parseFromString(html, "text/html");
-                    // Replace <html> entirely
                     document.documentElement.replaceWith(newDoc.documentElement);
                     applyStatusColors();
                 } catch (err) {
@@ -274,7 +275,6 @@ Resume for previous mails avaiable
                 }
             }
 
-            // New Function for Filter Buttons
             async function filterLogs(filterType) {
                 try {
                     await fetch('/show_particular_logs', {
@@ -290,7 +290,6 @@ Resume for previous mails avaiable
                 }
             }
 
-            // Only auto-refresh if there are pending items
             {% if mails and processing %}
                 setInterval(refreshLogs, 2000);
             {% else %}
@@ -302,21 +301,25 @@ Resume for previous mails avaiable
                 if (!btn) return;
                 const action = btn.dataset.action;
 
-                // 🔄 Instant UI toggle
                 if (action === "resume") {
-                    btn.textContent = "Processing sending all previous mails....";
+                    btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Resuming...';
                     btn.disabled = true;
                 }
 
-                // 📡 Notify backend (non-blocking UX)
                 try {
-                    await fetch("/mail_control", {
+                    const response = await fetch("/mail_control", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ action })
                     });
+
+                    if (response.ok) {
+                        setTimeout(() => window.location.reload(), 1000);
+                    }
                 } catch (err) {
-                    console.error(err);
+                    console.error("Control action failed:", err);
+                    btn.disabled = false;
+                    btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> RESUME SENDING PREVIOUS MAILS';
                 }
             });
         </script>

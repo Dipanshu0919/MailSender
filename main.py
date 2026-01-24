@@ -131,11 +131,13 @@ def send_mail():
                         ms_obj.selected_mails[index][3] = f"Error: {e}"
                         ms_obj.failed_mails += 1
 
+                ms_obj.selected_mails[index][4] = time.strftime("%d/%m/%Y, %H:%M:%S", time.localtime())
+
                 # mode = "a" if ms_obj.resume_sending else "w"
                 with open("mail_logs.csv", "w") as f:
                     writer = csv.writer(f)
                     # if mode == "w":
-                    writer.writerow(["index", "email", "message", "status"])
+                    writer.writerow(["index", "email", "message", "status", "time"])
                     writer.writerows(ms_obj.selected_mails)
                 time.sleep(1)
 
@@ -217,7 +219,7 @@ def selectemails():
     for fields in to_json:
         email = fields["email"]
         data = fields["data"]
-        ms_obj.selected_mails.append([data[0], email, data[1], "Processing"])
+        ms_obj.selected_mails.append([data[0], email, data[1], "Processing", time.strftime("%d/%m/%Y, %H:%M:%S", time.localtime())])
     ms_obj.email_subject = request.form.get("subject")
     send_mail()
     return "OK"
@@ -231,19 +233,20 @@ def show_logs():
     totalProcessing = 0
     totalError = 0
     if mails:
-        processing = any(status == "Processing" for _, _, _, status in mails)
+        processing = any(status == "Processing" for _, _, _, status, _ in mails)
     else:
         processing = False
         with open("mail_logs.csv", "r") as f:
             reader = csv.DictReader(f)
             mails = []
             for x in reader:
-                mails.append([x["index"], x["email"], x["message"], x["status"]])
+                mails.append([x["index"], x["email"], x["message"], x["status"], x["time"]])
                 if not processing:
                     processing = True if x["status"] == "Processing" else False
     isPaused = ms_obj.pause_request
+
     if mails:
-        for _, _, _, status in mails:
+        for _, _, _, status, _ in mails:
             if status == "Processing":
                 totalProcessing += 1
             elif status.startswith("Skipped"):
@@ -272,22 +275,26 @@ def mail_control():
         with open("mail_logs.csv", "r") as f:
             reader = csv.DictReader(f)
             for x in reader:
-                ms_obj.selected_mails.append([x["index"], x["email"], x["message"], x["status"]])
+                ms_obj.selected_mails.append([x["index"], x["email"], x["message"], x["status"], x["time"]])
 
         ms_obj.pause_request = False
         send_mail()
 
     return "Control Changed"
 
+
 @app.route("/download/mail_logs.csv")
 def download_mail_logs_csv():
     return send_file("mail_logs.csv", as_attachment=True, download_name="MailSender_email_logs.csv", mimetype="text/csv")
+
 
 @app.route("/show_particular_logs", methods=["POST"])
 def show_particular_logs():
     way = request.json.get("filter")
     print(way)
-    session["logs_filter"] = way
+    session["logs_filter"] = [way]
+    if way == "all":
+        session["logs_filter"] = ["processing", "error", "success", "skipped"]
     return "OK"
 
 
