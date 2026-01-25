@@ -171,8 +171,11 @@ def file():
     for index, row in enumerate(ms_obj.filedata, start=0):
         if not proper_email:
             for key, value in row.items():
-                if email_regex.search(value):
-                    proper_email.append(key)
+                try:
+                    if email_regex.search(value):
+                        proper_email.append(key)
+                except:
+                    pass
         row["index"] = index
     return jsonify(proper_email)
 
@@ -232,6 +235,7 @@ def show_logs():
     totalSkipped = 0
     totalProcessing = 0
     totalError = 0
+    new_start = False if mails else True
     if mails:
         processing = any(status == "Processing" for _, _, _, status, _ in mails)
     else:
@@ -257,7 +261,7 @@ def show_logs():
                 totalSuccess += 1
 
     logs_filter = session.get("logs_filter", "all")
-    return render_template("logs.html", mails=mails, processing=processing, isPaused=isPaused, logs_filter=logs_filter,
+    return render_template("logs.html", mails=mails, processing=processing, isPaused=isPaused, logs_filter=logs_filter, new_start=new_start,
         totalError=totalError, totalProcessing=totalProcessing, totalSkipped=totalSkipped, totalSuccess=totalSuccess
     )
 
@@ -267,8 +271,8 @@ def mail_control():
     data = request.json
     action = data.get("action")
 
-    # if action == "pause":
-    #     ms_obj.pause_request = True
+    if action == "pause":
+        ms_obj.pause_request = True
 
     if action == "resume":
         ms_obj.selected_mails = []
@@ -278,9 +282,10 @@ def mail_control():
                 ms_obj.selected_mails.append([x["index"], x["email"], x["message"], x["status"], x["time"]])
 
         ms_obj.pause_request = False
-        send_mail()
+        thread = threading.Thread(target=send_mail)
+        thread.start()
 
-    return "Control Changed"
+    return f"{action.upper()} SUCCESS!"
 
 
 @app.route("/download/mail_logs.csv")

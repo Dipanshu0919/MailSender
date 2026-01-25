@@ -152,10 +152,20 @@
                         </button>
                     </form>
 
-                    {% if not isPaused and processing %}
+                    {% if new_start and processing %}
                         <button class="action-btn resume" data-action="resume">
                             <svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                             RESUME SENDING PREVIOUS MAILS
+                        </button>
+                    {% elif isPaused %}
+                        <button class="action-btn resume" data-action="resume">
+                            <svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            RESUME
+                        </button>
+                    {% elif processing and isPaused == False %}
+                        <button class="action-btn pause" data-action="pause">
+                            <svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            PAUSE
                         </button>
                     {% endif %}
                 </div>
@@ -305,21 +315,16 @@
                     btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Resuming...';
                     btn.disabled = true;
                 }
+                const response = await fetch("/mail_control", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action })
+                });
 
-                try {
-                    const response = await fetch("/mail_control", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ action })
-                    });
-
-                    if (response.ok) {
-                        setTimeout(() => window.location.reload(), 1000);
-                    }
-                } catch (err) {
-                    console.error("Control action failed:", err);
-                    btn.disabled = false;
-                    btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> RESUME SENDING PREVIOUS MAILS';
+                if (response.ok) {
+                  const data = await response.text();
+                  alert(data);
+                  setTimeout(() => window.location.reload(), 1000);
                 }
             });
         </script>
