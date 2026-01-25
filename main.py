@@ -315,5 +315,5 @@ def dataformat():
     return render_template("dataformat.html")
 
 if __name__ == "__main__":
-    # threading.Timer(1, open_browser).start()
-    app.run(port=8026, debug=True)
+    threading.Timer(1, open_browser).start()
+    app.run(port=8026, debug=False)
