@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Data Structure Rules & Examples</title>
+  <style>
+    body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; padding: 40px; max-width: 1200px; margin: 0 auto; color: #333; }
+    h1 { text-align: center; color: #1a1a1a; margin-bottom: 40px; display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 28px; }
+    h2 { margin-top: 0; color: #444; border-bottom: 2px solid #e1e4e8; padding-bottom: 12px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; font-size: 22px; }
+    h3 { color: #555; margin: 0 0 15px 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .format-section { background: #fff; padding: 30px; margin-bottom: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e1e4e8; }
+    .rule { background: #e3f2fd; border-left: 5px solid #2196f3; padding: 20px; margin-bottom: 40px; border-radius: 8px; display: flex; align-items: flex-start; gap: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .rule strong { color: #0d47a1; display: block; margin-bottom: 5px; font-size: 18px; }
+    .note { background: #fff8e1; padding: 25px; margin-top: 40px; border-left: 5px solid #ffc107; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .note strong { display: flex; align-items: center; gap: 8px; font-size: 18px; margin-bottom: 15px; color: #856404; }
+    .example-block { margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px dashed #e0e0e0; }
+    .example-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .status-good { color: #107c41; }
+    .status-bad { color: #d93025; }
+    .icon { width: 28px; height: 28px; fill: currentColor; }
+    .icon-small { width: 20px; height: 20px; fill: currentColor; }
+    .info-list { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 15px; border: 1px solid #e9ecef; }
+    .info-list p { margin: 8px 0; display: flex; align-items: center; gap: 10px; font-size: 14px; color: #495057; }
+    .excel-wrapper { overflow-x: auto; border: 1px solid #d4d4d4; background: #fff; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    table.excel-table { width: 100%; border-collapse: collapse; font-family: 'Calibri', 'Arial', sans-serif; font-size: 14px; min-width: 600px; }
+    table.excel-table th { background-color: #217346; color: white; border: 1px solid #1a5c38; padding: 6px 12px; font-weight: normal; text-align: left; height: 30px; }
+    table.excel-table td { border: 1px solid #d4d4d4; padding: 5px 12px; color: #000; height: 25px; vertical-align: middle; white-space: nowrap; }
+    table.excel-table tr:nth-child(even) td { background-color: #f3f3f3; }
+    .merged-header { background: #d93025 !important; color: white !important; text-align: center !important; font-weight: bold !important; border: 1px solid #b71c1c !important; }
+    .csv-wrapper { font-family: 'Consolas', 'Courier New', monospace; background: #fff; border: 1px solid #ccc; padding: 0; border-radius: 4px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
+    .csv-header-bar { background: #f0f0f0; border-bottom: 1px solid #ccc; padding: 5px 10px; font-size: 12px; color: #666; font-family: 'Segoe UI', sans-serif; display: flex; gap: 5px; }
+    .csv-content { padding: 15px; white-space: pre; overflow-x: auto; line-height: 1.5; font-size: 14px; color: #333; }
+    .json-wrapper { background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 6px; margin-bottom: 15px; font-family: 'Consolas', 'Monaco', monospace; border: 1px solid #333; overflow-x: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3); white-space: pre; }
+    .json-key { color: #9cdcfe; }
+    .json-string { color: #ce9178; }
+    .json-number { color: #b5cea8; }
+    .json-brace { color: #ffd700; }
+    ul { padding-left: 20px; margin: 0; list-style-type: none; }
+    li { margin-bottom: 8px; padding-left: 10px; position: relative; }
+    li::before { content: "•"; color: #2196f3; font-weight: bold; position: absolute; left: -15px; font-size: 1.2em; top: -2px; }
+    @media (max-width: 600px) { body { padding: 15px; } .format-section { padding: 15px; } }
+  </style>
+</head>
+<body>
+
+<h1>
+  <svg class="icon" viewBox="0 0 24 24" style="fill:#2c3e50"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+  File Data Structure Reference
+</h1>
+
+<div class="rule">
+  <svg class="icon" viewBox="0 0 24 24" style="fill:#1976d2; min-width: 24px;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+  <div>
+    <strong>Critical Rule:</strong>
+    The <u style="text-decoration-color: #1976d2; text-decoration-thickness: 2px;">first row must always be headers</u> (for CSV & Excel).
+    <br>Missing values in data rows are allowed, but headers must exist, and they must not be merged or missing.
+    <br>If a value is missing, then sending mail to that email address will be skipped.
+  </div>
+</div>
+
+<!-- ================= XLSX / EXCEL ================= -->
+<div class="format-section">
+  <h2>
+    <svg class="icon" viewBox="0 0 24 24" style="fill:#217346"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12h-4v-4h4v4zm0-6h-4v-4h4v4zM8 20H4v-4h4v4zm0-6H4v-4h4v4zm0-6H4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4z"/></svg>
+    XLSX / Excel Format
+  </h2>
+
+  <!-- Good Excel -->
+  <div class="example-block">
+    <h3 class="status-good">
+      <svg class="icon-small" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      Correct Structure (Header in First Row)
+    </h3>
+    <div class="excel-wrapper">
+      <table class="excel-table">
+        <thead>
+          <tr>
+            <th>id</th>
+            <th>name</th>
+            <th>email</th>
+            <th>department</th>
+            <th>salary</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>John Doe</td><td>john.doe@example.com</td><td>Sales</td><td>55000</td></tr>
+          <tr><td>2</td><td>Jane Smith</td><td>jane.smith@example.com</td><td>Marketing</td><td>60000</td></tr>
+          <tr><td>3</td><td>Michael Brown</td><td>michael.brown@example.com</td><td>IT</td><td>75000</td></tr>
+          <tr><td>4</td><td>Emily Davis</td><td>emily.davis@example.com</td><td>HR</td><td>52000</td></tr>
+          <tr><td>5</td><td>David Wilson</td><td>david.wilson@example.com</td><td>Finance</td><td>68000</td></tr>
+          <tr><td>6</td><td>Sarah Johnson</td><td>sarah.johnson@example.com</td><td>IT</td><td>72000</td></tr>
+          <tr><td>7</td><td>Daniel Lee</td><td>daniel.lee@example.com</td><td>Operations</td><td>58000</td></tr>
+          <tr><td>8</td><td>Laura Martinez</td><td>laura.martinez@example.com</td><td>Sales</td><td>56000</td></tr>
+          <tr><td>9</td><td>James Taylor</td><td>james.taylor@example.com</td><td>Marketing</td><td>61000</td></tr>
+          <tr><td>10</td><td></td><td>olivia.anderson@example.com</td><td>HR</td><td>54000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-list">
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> The header row is present as the first row.</p>
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Each column has a unique header.</p>
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> There are no merged cells in the headers.</p>
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Data follows immediately after the headers.</p>
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Empty cells in data rows are allowed.</p>
+    </div>
+  </div>
+
+  <!-- Bad Excel (Merged) -->
+  <div class="example-block">
+    <h3 class="status-bad">
+      <svg class="icon-small" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+      Wrong: Merged Header Cells
+    </h3>
+    <div class="excel-wrapper">
+      <table class="excel-table">
+        <thead>
+          <tr>
+            <th colspan="5" class="merged-header">Employee Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>John Doe</td><td>john.doe@example.com</td><td>Sales</td><td>55000</td></tr>
+          <tr><td>2</td><td>Jane Smith</td><td>jane.smith@example.com</td><td>Marketing</td><td>60000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-list">
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> Merged cells prevent proper column identification.</p>
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> Each column must have its own header.</p>
+    </div>
+  </div>
+
+  <!-- Bad Excel (Missing) -->
+  <div class="example-block">
+    <h3 class="status-bad">
+      <svg class="icon-small" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+      Wrong: Missing Header Row
+    </h3>
+    <div class="excel-wrapper">
+      <table class="excel-table">
+        <tbody>
+          <tr><td>1</td><td>John Doe</td><td>john.doe@example.com</td><td>Sales</td><td>55000</td></tr>
+          <tr><td>2</td><td>Jane Smith</td><td>jane.smith@example.com</td><td>Marketing</td><td>60000</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-list">
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> The system might detect column names, but selecting emails will be difficult.</p>
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> The file may be processed incorrectly.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ================= CSV ================= -->
+<div class="format-section">
+  <h2>
+    <svg class="icon" viewBox="0 0 24 24" style="fill:#5f6368"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/></svg>
+    CSV Format
+  </h2>
+
+  <!-- Good CSV 1 -->
+  <div class="example-block">
+    <h3 class="status-good">
+      <svg class="icon-small" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      Correct CSV Structure
+    </h3>
+    <div class="csv-wrapper">
+      <div class="csv-header-bar">
+        <svg style="width:12px; height:12px; fill:#666" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6z"/></svg>
+        <span>data.csv - Notepad</span>
+      </div>
+      <div class="csv-content">id,name,email,department,salary
+1,John Doe,john.doe@example.com,Sales,55000
+2,Jane Smith,jane.smith@example.com,Marketing,60000
+3,Michael Brown,michael.brown@example.com,IT,75000
+4,Emily Davis,emily.davis@example.com,HR,52000
+5,David Wilson,david.wilson@example.com,Finance,68000
+6,Sarah Johnson,sarah.johnson@example.com,IT,72000
+7,Daniel Lee,daniel.lee@example.com,Operations,58000
+8,Laura Martinez,laura.martinez@example.com,Sales,56000
+9,James Taylor,james.taylor@example.com,Marketing,61000
+10,Olivia Anderson,olivia.anderson@example.com,HR,54000</div>
+    </div>
+    <div class="info-list">
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> The first line contains the headers.</p>
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Clean structure with no extra rows.</p>
+    </div>
+  </div>
+
+  <!-- Good CSV 2 -->
+  <div class="example-block">
+    <h3 class="status-good">
+      <svg class="icon-small" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      Correct: CSV with Empty Values
+    </h3>
+    <div class="csv-wrapper">
+      <div class="csv-header-bar"><span>notepad.txt</span></div>
+      <div class="csv-content">col1,col2,col3,col4,col5
+1,John Doe,john.doe@example.com,Sales,55000
+2,Jane Smith,,Marketing,60000
+3,Michael Brown,michael.brown@example.com,,</div>
+    </div>
+    <div class="info-list">
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Header is the first row.</p>
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Empty cells in data rows are allowed but will be skipped when sending email.</p>
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Columns are not merged.</p>
+    </div>
+  </div>
+
+  <!-- Bad CSV 1 -->
+  <div class="example-block">
+    <h3 class="status-bad">
+      <svg class="icon-small" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+      Wrong: Missing Header Row
+    </h3>
+    <div class="csv-wrapper">
+      <div class="csv-header-bar"><span>data_error.csv</span></div>
+      <div class="csv-content">1,John Doe,john.doe@example.com,Sales,55000
+2,Jane Smith,jane.smith@example.com,Marketing,60000
+3,Michael Brown,michael.brown@example.com,IT,75000</div>
+    </div>
+    <div class="info-list">
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> The system might detect column names, but selecting emails will be difficult.</p>
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> The first data row may be incorrectly treated as the header.</p>
+    </div>
+  </div>
+
+  <!-- Bad CSV 2 -->
+  <div class="example-block">
+    <h3 class="status-bad">
+      <svg class="icon-small" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+      Wrong: Extra Content Before Header
+    </h3>
+    <div class="csv-wrapper">
+      <div class="csv-header-bar"><span>report.csv</span></div>
+      <div class="csv-content">Employee Salary File
+Generated: 2024
+id,name,email,department,salary
+1,John Doe,john.doe@example.com,Sales,55000</div>
+    </div>
+    <div class="info-list">
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> Extra rows confuse the parser.</p>
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> The system cannot identify the true header row.</p>
+    </div>
+  </div>
+
+  <!-- Bad CSV 3 -->
+  <div class="example-block">
+    <h3 class="status-bad">
+      <svg class="icon-small" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+      Wrong: Multiple Header Rows
+    </h3>
+    <div class="csv-wrapper">
+      <div class="csv-header-bar"><span>details.csv</span></div>
+      <div class="csv-content">Employee Details,,,,,
+ID,Name,Email,Department,Salary
+1,John Doe,john.doe@example.com,Sales,55000
+2,Jane Smith,jane.smith@example.com,Marketing,60000</div>
+    </div>
+    <div class="info-list">
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> The system cannot detect which row contains the actual headers.</p>
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> The file will be rejected.</p>
+    </div>
+  </div>
+
+  <!-- Bad CSV 4 -->
+  <div class="example-block">
+    <h3 class="status-bad">
+      <svg class="icon-small" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+      Wrong: Empty or Partial Headers
+    </h3>
+    <div class="csv-wrapper">
+      <div class="csv-header-bar"><span>partial.csv</span></div>
+      <div class="csv-content">id,name,,department,
+1,John Doe,john.doe@example.com,Sales,55000
+2,Jane Smith,jane.smith@example.com,Marketing,60000</div>
+    </div>
+    <div class="info-list">
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> Missing column headers create ambiguity.</p>
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> The system may auto-generate generic names or fail.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ================= JSON ================= -->
+<div class="format-section">
+  <h2>
+    <svg class="icon" viewBox="0 0 24 24" style="fill:#1a73e8"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+    JSON Format
+  </h2>
+
+  <!-- Good JSON -->
+  <div class="example-block">
+    <h3 class="status-good">
+      <svg class="icon-small" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      Correct JSON Structure (Array of Objects)
+    </h3>
+    <div class="json-wrapper">
+<span class="json-brace">[</span>
+  <span class="json-brace">{</span>
+    <span class="json-key">"id"</span>: <span class="json-number">1</span>,
+    <span class="json-key">"name"</span>: <span class="json-string">"John Doe"</span>,
+    <span class="json-key">"email"</span>: <span class="json-string">"john.doe@example.com"</span>,
+    <span class="json-key">"department"</span>: <span class="json-string">"Sales"</span>,
+    <span class="json-key">"salary"</span>: <span class="json-number">55000</span>
+  <span class="json-brace">}</span>,
+  <span class="json-brace">{</span>
+    <span class="json-key">"id"</span>: <span class="json-number">2</span>,
+    <span class="json-key">"name"</span>: <span class="json-string">"Jane Smith"</span>,
+    <span class="json-key">"email"</span>: <span class="json-string">"jane.smith@example.com"</span>,
+    <span class="json-key">"department"</span>: <span class="json-string">"Marketing"</span>,
+    <span class="json-key">"salary"</span>: <span class="json-number">60000</span>
+  <span class="json-brace">}</span>,
+  <span class="json-brace">{</span>
+    <span class="json-key">"id"</span>: <span class="json-number">3</span>,
+    <span class="json-key">"name"</span>: <span class="json-string">"Michael Brown"</span>,
+    <span class="json-key">"email"</span>: <span class="json-string">"michael.brown@example.com"</span>,
+    <span class="json-key">"department"</span>: <span class="json-string">"IT"</span>,
+    <span class="json-key">"salary"</span>: <span class="json-number">75000</span>
+  <span class="json-brace">}</span>,
+  <span class="json-brace">{</span>
+    <span class="json-key">"id"</span>: <span class="json-number">4</span>,
+    <span class="json-key">"name"</span>: <span class="json-string">"Emily Davis"</span>,
+    <span class="json-key">"email"</span>: <span class="json-string">"emily.davis@example.com"</span>,
+    <span class="json-key">"department"</span>: <span class="json-string">"HR"</span>,
+    <span class="json-key">"salary"</span>: <span class="json-number">52000</span>
+  <span class="json-brace">}</span>,
+  <span class="json-brace">{</span>
+    <span class="json-key">"id"</span>: <span class="json-number">5</span>,
+    <span class="json-key">"name"</span>: <span class="json-string">"David Wilson"</span>,
+    <span class="json-key">"email"</span>: <span class="json-string">"david.wilson@example.com"</span>,
+    <span class="json-key">"department"</span>: <span class="json-string">"Finance"</span>,
+    <span class="json-key">"salary"</span>: <span class="json-number">68000</span>
+  <span class="json-brace">}</span>,
+  <span class="json-brace">{</span>
+    <span class="json-key">"id"</span>: <span class="json-number">6</span>,
+    <span class="json-key">"name"</span>: <span class="json-string">"Sarah Johnson"</span>,
+    <span class="json-key">"email"</span>: <span class="json-string">"sarah.johnson@example.com"</span>,
+    <span class="json-key">"department"</span>: <span class="json-string">"IT"</span>,
+    <span class="json-key">"salary"</span>: <span class="json-number">72000</span>
+  <span class="json-brace">}</span>,
+  <span class="json-brace">{</span>
+    <span class="json-key">"id"</span>: <span class="json-number">7</span>,
+    <span class="json-key">"name"</span>: <span class="json-string">"Daniel Lee"</span>,
+    <span class="json-key">"email"</span>: <span class="json-string">"daniel.lee@example.com"</span>,
+    <span class="json-key">"department"</span>: <span class="json-string">"Operations"</span>,
+    <span class="json-key">"salary"</span>: <span class="json-number">58000</span>
+  <span class="json-brace">}</span>,
+  <span class="json-brace">{</span>
+    <span class="json-key">"id"</span>: <span class="json-number">8</span>,
+    <span class="json-key">"name"</span>: <span class="json-string">"Laura Martinez"</span>,
+    <span class="json-key">"email"</span>: <span class="json-string">"laura.martinez@example.com"</span>,
+    <span class="json-key">"department"</span>: <span class="json-string">"Sales"</span>,
+    <span class="json-key">"salary"</span>: <span class="json-number">56000</span>
+  <span class="json-brace">}</span>,
+  <span class="json-brace">{</span>
+    <span class="json-key">"id"</span>: <span class="json-number">9</span>,
+    <span class="json-key">"name"</span>: <span class="json-string">"James Taylor"</span>,
+    <span class="json-key">"email"</span>: <span class="json-string">"james.taylor@example.com"</span>,
+    <span class="json-key">"department"</span>: <span class="json-string">"Marketing"</span>,
+    <span class="json-key">"salary"</span>: <span class="json-number">61000</span>
+  <span class="json-brace">}</span>,
+  <span class="json-brace">{</span>
+    <span class="json-key">"id"</span>: <span class="json-number">10</span>,
+    <span class="json-key">"name"</span>: <span class="json-string">"Olivia Anderson"</span>,
+    <span class="json-key">"email"</span>: <span class="json-string">"olivia.anderson@example.com"</span>,
+    <span class="json-key">"department"</span>: <span class="json-string">"HR"</span>,
+    <span class="json-key">"salary"</span>: <span class="json-number">54000</span>
+  <span class="json-brace">}</span>
+<span class="json-brace">]</span>
+    </div>
+    <div class="info-list">
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Array format for multiple records.</p>
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Consistent keys across all objects.</p>
+      <p><svg class="icon-small status-good" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Proper JSON syntax.</p>
+    </div>
+  </div>
+
+  <!-- Bad JSON -->
+  <div class="example-block">
+    <h3 class="status-bad">
+      <svg class="icon-small" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+      Wrong: Inconsistent Structure
+    </h3>
+    <div class="json-wrapper">
+<span class="json-brace">[</span>
+  <span class="json-brace">{</span> <span class="json-key">"id"</span>: <span class="json-number">1</span>, <span class="json-key">"name"</span>: <span class="json-string">"John Doe"</span> <span class="json-brace">}</span>,
+  <span class="json-brace">{</span> <span class="json-key">"email"</span>: <span class="json-string">"jane.smith@example.com"</span>, <span class="json-key">"salary"</span>: <span class="json-number">60000</span> <span class="json-brace">}</span>
+<span class="json-brace">]</span>
+    </div>
+    <div class="info-list">
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> Missing keys in different objects.</p>
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> Inconsistent field structure.</p>
+      <p><svg class="icon-small status-bad" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> Makes data processing difficult.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ================= BEST PRACTICES ================= -->
+<div class="note">
+  <strong>
+    <svg class="icon" viewBox="0 0 24 24" style="fill:#856404"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6C7.8 12.16 7 10.63 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>
+    Best Practices Summary:
+  </strong>
+  <ul>
+    <li><strong>CSV/Excel:</strong> Always include a complete header row as the first row.</li>
+    <li><strong>Headers:</strong> Use descriptive, unique column names without merging.</li>
+    <li><strong>Empty Values:</strong> Empty data cells are fine, but empty header cells are not.</li>
+    <li><strong>Clean Files:</strong> No title rows, metadata, or extra content before headers.</li>
+    <li><strong>JSON:</strong> Use array format with consistent object structure.</li>
+    <li><strong>Consistency:</strong> All records should have the same fields/columns.</li>
+  </ul>
+</div>
+
+</body>
+</html>

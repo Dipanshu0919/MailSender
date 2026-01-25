@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import pandas as pd
 import random
 import re
 import smtplib
@@ -149,7 +150,6 @@ def send_mail():
         # for t in threads:
         #     t.join()
 
-
 @app.route("/file", methods=["POST"])
 def file():
     uploaded_file = request.files.get("file")
@@ -157,9 +157,16 @@ def file():
     ms_obj.filename = f"mailSender__{uploaded_file.filename}"
     uploaded_file.save(ms_obj.filename)
 
+    if ms_obj.filename.endswith(".xlsx"):
+        df = pd.read_excel(ms_obj.filename)
+        df.to_csv(f"{ms_obj.filename.replace('.xlsx', '.csv')}", index=False)
+        os.remove(ms_obj.filename)
+        ms_obj.filename = ms_obj.filename.replace('.xlsx', '.csv')
+
     if ms_obj.filename.endswith(".csv"):
         with open(ms_obj.filename, "r") as f:
             ms_obj.filedata = list(csv.DictReader(f))
+        print(ms_obj.filedata)
 
     elif ms_obj.filename.endswith(".json"):
         with open(ms_obj.filename, "r") as f:
@@ -302,6 +309,10 @@ def show_particular_logs():
         session["logs_filter"] = ["processing", "error", "success", "skipped"]
     return "OK"
 
+
+@app.route("/dataformat")
+def dataformat():
+    return render_template("dataformat.html")
 
 if __name__ == "__main__":
     # threading.Timer(1, open_browser).start()
