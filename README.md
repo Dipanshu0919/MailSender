@@ -27,6 +27,16 @@ MailSender is a secure, local-hosted bulk email automation tool designed for sen
     * **Pause & Resume:** Need to check something? Pause the campaign and resume exactly where you left off.
 * **Dark/Light Mode:** Comfortable UI for day or night work.
 
+## 📷 Images
+  **Home Page**
+  ![Home Page](assets/homepage.png)
+  
+  **Email Selection and Sending Dynamic Message**
+  ![Home Page](assets/emailselection.png)
+  
+  **Dynamic Logs Page**
+  ![logs](assets/logs.png)
+  
 ## 🛠️ Installation & Setup
 
 1.  **Clone the repository:**
