@@ -37,6 +37,9 @@ MailSender is a secure, local-hosted bulk email automation tool designed for sen
   **Dynamic Logs Page**
   ![logs](assets/logs.png)
   
+  **Email Received as formmated**
+  ![Email receive](email.jpg)
+  
 ## 🛠️ Installation & Setup
 
 1.  **Clone the repository:**
