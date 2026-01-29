@@ -1,7 +1,6 @@
 import csv
 import json
 import os
-import pandas as pd
 import random
 import re
 import smtplib
@@ -11,6 +10,8 @@ import webbrowser
 from concurrent.futures import ThreadPoolExecutor
 from email.mime.text import MIMEText
 from email.policy import SMTP
+
+import pandas as pd
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,7 +23,7 @@ app = Flask(__name__)
 app.config["JSONIFY_PRETTYPRINT_REGULAR"] = False
 app.secret_key = "mailsender"
 
-place_holder_regex = re.compile(r"\$\((\w+)\)\$")
+place_holder_regex = re.compile(r"\$\(([^)]+)\)\$")
 email_regex = re.compile(r"[A-Za-z0-9._-]+@[A-Za-z0-9._-]+\.[A-Za-z]+")
 SENDER_MAIL = os.environ.get("MAILSENDER_SMTP_MAIL")
 SENDER_MAIL_APP_PASSWORD = os.environ.get("MAILSENDER_SMTP_MAIL_APP_PASSWORD")
@@ -43,8 +44,9 @@ class mailSender:
         self.filedata = None
         self.selected_mails = None
         self.smtp_provider = None
-        self.email_subject = ""
+        self.email_subject = "Important Mail"
         self.filename = ""
+        self.smtp_disconnect_error = ""
         self.pause_request = False
         self.resume_sending = False
 
@@ -62,7 +64,8 @@ class mailSender:
             for k, v in smtp_providers.items():
                 if v[2] in result:
                     self.smtp_provider = k
-        except:
+        except Exception as e:
+            print(e)
             self.smtp_provider = None
         return self.smtp_provider if self.smtp_provider else None
 
@@ -93,54 +96,70 @@ def send_mail():
 
     port = smtp_providers[ms_obj.smtp_provider][1]
     host = smtp_providers[ms_obj.smtp_provider][0]
+    reconnect_after = 10
+    howmany = len(ms_obj.selected_mails)
 
-    with smtplib.SMTP_SSL(host, port) as server:
-        server.login(SENDER_MAIL, SENDER_MAIL_APP_PASSWORD)
+    for i in range(0, howmany, reconnect_after):
+        if ms_obj.pause_request:
+            print("PAUSED BY USER")
+            return
+        which_mails = ms_obj.selected_mails[i : i + reconnect_after]
+        try:
+            print("CONNECTING TO SERVER....")
+            with smtplib.SMTP_SSL(host, port) as server:
+                server.login(SENDER_MAIL, SENDER_MAIL_APP_PASSWORD)
 
-        for indexx, mails in enumerate(ms_obj.selected_mails):
-            index = indexx
-            mail = mails
-            # def mail_thread(index, mail):
-            find_placeholders = place_holder_regex.findall(mail[2])
+                for inx, mail in enumerate(which_mails):
+                    index = inx + i
+                    # def mail_thread(index, mail):
+                    find_placeholders = place_holder_regex.findall(mail[2])
 
-            if ms_obj.pause_request:
-                break
+                    if ms_obj.pause_request:
+                        print("PAUSED BY USER")
+                        return
 
-            if (ms_obj.selected_mails[index][3] == "Processing") and (not ms_obj.pause_request):
+                    if ms_obj.selected_mails[index][3] != "Processing":
+                        continue
 
-                if find_placeholders:
-                    with ms_obj.mail_thread_lock:
-                        ms_obj.selected_mails[index][3] = "Skipped: " + ", ".join(find_placeholders)
-                        ms_obj.skipped_mails += 1
-                    # return
-                    continue
+                    if find_placeholders:
+                        with ms_obj.mail_thread_lock:
+                            ms_obj.selected_mails[index][3] = "Skipped: " + ", ".join(find_placeholders)
+                            ms_obj.skipped_mails += 1
+                            # return
+                        continue
 
-                try:
-                    msg = MIMEText(mail[2], "html")
-                    msg["Subject"] = ms_obj.email_subject
-                    msg["From"] = SENDER_MAIL
-                    msg["To"] = mail[1]
+                    try:
+                        msg = MIMEText(mail[2], "html")
+                        msg["Subject"] = ms_obj.email_subject
+                        msg["From"] = SENDER_MAIL
+                        msg["To"] = mail[1]
 
-                    server.sendmail(SENDER_MAIL, mail[1], msg.as_string())
+                        server.sendmail(SENDER_MAIL, mail[1], msg.as_string())
 
-                    with ms_obj.mail_thread_lock:
-                        ms_obj.selected_mails[index][3] = "Success"
-                        ms_obj.success_mails += 1
+                        with ms_obj.mail_thread_lock:
+                            ms_obj.selected_mails[index][3] = "Success"
+                            ms_obj.success_mails += 1
 
-                except Exception as e:
-                    with ms_obj.mail_thread_lock:
-                        ms_obj.selected_mails[index][3] = f"Error: {e}"
-                        ms_obj.failed_mails += 1
+                    except Exception as e:
+                        with ms_obj.mail_thread_lock:
+                            ms_obj.selected_mails[index][3] = f"Error: {e}"
+                            ms_obj.failed_mails += 1
 
-                ms_obj.selected_mails[index][4] = time.strftime("%d/%m/%Y, %H:%M:%S", time.localtime())
+                    ms_obj.selected_mails[index][4] = time.strftime(
+                        "%d/%m/%Y, %H:%M:%S", time.localtime()
+                    )
 
-                # mode = "a" if ms_obj.resume_sending else "w"
-                with open("mail_logs.csv", "w") as f:
-                    writer = csv.writer(f)
-                    # if mode == "w":
-                    writer.writerow(["index", "email", "message", "status", "time"])
-                    writer.writerows(ms_obj.selected_mails)
-                time.sleep(1)
+                    # mode = "a" if ms_obj.resume_sending else "w"
+                    with open("mail_logs.csv", "w") as f:
+                        writer = csv.writer(f)
+                        # if mode == "w":
+                        writer.writerow(["index", "email", "message", "status", "time"])
+                        writer.writerows(ms_obj.selected_mails)
+
+                    index += 1
+                    time.sleep(1)
+        except smtplib.SMTPServerDisconnected as e:
+            ms_obj.smtp_disconnect_error = f"SMTP was disconnected due to error {e}\nPlease try again after some time"
 
         # t = threading.Thread(target=mail_thread, args=(indexx, mails))
         # threads.append(t)
@@ -149,6 +168,7 @@ def send_mail():
 
         # for t in threads:
         #     t.join()
+
 
 @app.route("/file", methods=["POST"])
 def file():
@@ -161,12 +181,11 @@ def file():
         df = pd.read_excel(ms_obj.filename)
         df.to_csv(f"{ms_obj.filename.replace('.xlsx', '.csv')}", index=False)
         os.remove(ms_obj.filename)
-        ms_obj.filename = ms_obj.filename.replace('.xlsx', '.csv')
+        ms_obj.filename = ms_obj.filename.replace(".xlsx", ".csv")
 
     if ms_obj.filename.endswith(".csv"):
         with open(ms_obj.filename, "r") as f:
             ms_obj.filedata = list(csv.DictReader(f))
-        print(ms_obj.filedata)
 
     elif ms_obj.filename.endswith(".json"):
         with open(ms_obj.filename, "r") as f:
@@ -229,9 +248,18 @@ def selectemails():
     for fields in to_json:
         email = fields["email"]
         data = fields["data"]
-        ms_obj.selected_mails.append([data[0], email, data[1], "Processing", time.strftime("%d/%m/%Y, %H:%M:%S", time.localtime())])
+        ms_obj.selected_mails.append(
+            [
+                data[0],
+                email,
+                data[1],
+                "Processing",
+                time.strftime("%d/%m/%Y, %H:%M:%S", time.localtime()),
+            ]
+        )
     ms_obj.email_subject = request.form.get("subject")
-    send_mail()
+    thread = threading.Thread(target=send_mail)
+    thread.start()
     return "OK"
 
 
@@ -268,9 +296,11 @@ def show_logs():
                 totalSuccess += 1
 
     logs_filter = session.get("logs_filter", "all")
-    return render_template("logs.html", mails=mails, processing=processing, isPaused=isPaused, logs_filter=logs_filter, new_start=new_start,
-        totalError=totalError, totalProcessing=totalProcessing, totalSkipped=totalSkipped, totalSuccess=totalSuccess
-    )
+    if logs_filter == "all":
+        logs_filter = ["processing", "error", "success", "skipped"]
+    smtp_disconnect_error = ms_obj.smtp_disconnect_error
+    return render_template("logs.html",mails=mails,processing=processing,isPaused=isPaused,logs_filter=logs_filter, smtp_disconnect_error=smtp_disconnect_error,
+        new_start=new_start,totalError=totalError,totalProcessing=totalProcessing,totalSkipped=totalSkipped,totalSuccess=totalSuccess)
 
 
 @app.route("/mail_control", methods=["POST"])
@@ -292,12 +322,13 @@ def mail_control():
         thread = threading.Thread(target=send_mail)
         thread.start()
 
+    print(ms_obj.selected_mails)
     return f"{action.upper()} SUCCESS!"
 
 
 @app.route("/download/mail_logs.csv")
 def download_mail_logs_csv():
-    return send_file("mail_logs.csv", as_attachment=True, download_name="MailSender_email_logs.csv", mimetype="text/csv")
+    return send_file("mail_logs.csv",as_attachment=True,download_name="MailSender_email_logs.csv",mimetype="text/csv",)
 
 
 @app.route("/show_particular_logs", methods=["POST"])
@@ -313,6 +344,7 @@ def show_particular_logs():
 @app.route("/dataformat")
 def dataformat():
     return render_template("dataformat.html")
+
 
 if __name__ == "__main__":
     threading.Timer(1, open_browser).start()
